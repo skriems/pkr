@@ -1,0 +1,2 @@
+/// Deck
+pub struct Deck {}
