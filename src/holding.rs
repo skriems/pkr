@@ -11,7 +11,7 @@ pub struct Holding {
 impl Holding {
     pub fn new(first: Card, second: Card) -> Result<Self> {
         if first.rank == second.rank && first.suit == second.suit {
-            return Err(Error::ParseError);
+            return Err(Error::InvalidHolding);
         }
         Ok(Holding { first, second })
     }
