@@ -1,19 +1,19 @@
 use crate::card::*;
 use crate::error::{Error, Result};
 
-/// Hand
+/// A Players Holding Cards
 #[derive(Debug, PartialOrd)]
-pub struct Hand {
+pub struct Holding {
     first: Card,
     second: Card,
 }
 
-impl Hand {
+impl Holding {
     pub fn new(first: Card, second: Card) -> Result<Self> {
         if first.rank == second.rank && first.suit == second.suit {
             return Err(Error::ParseError);
         }
-        Ok(Hand { first, second })
+        Ok(Holding { first, second })
     }
 
     pub fn from(expr: &str) -> Result<Self> {
@@ -23,11 +23,11 @@ impl Hand {
 
         let first = Card::from(&expr[..2])?;
         let second = Card::from(&expr[2..4])?;
-        Hand::new(first, second)
+        Holding::new(first, second)
     }
 }
 
-impl PartialEq for Hand {
+impl PartialEq for Holding {
     fn eq(&self, other: &Self) -> bool {
         self.first == other.first && self.second == other.second
             || self.first == other.second && self.second == other.first
@@ -43,21 +43,21 @@ mod tests {
     #[test]
     fn new() {
         // same Rank, different Suit
-        assert!(Hand::new(
+        assert!(Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::Ace, Suit::Spades)
         )
         .is_ok());
 
         // different Rank, suited
-        assert!(Hand::new(
+        assert!(Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Clubs)
         )
         .is_ok());
 
         // same Rank, suited
-        assert!(Hand::new(
+        assert!(Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::Ace, Suit::Clubs)
         )
@@ -67,24 +67,24 @@ mod tests {
     #[test]
     fn from_expr() {
         // different Rank, suited
-        assert!(Hand::from("AsKs").is_ok());
+        assert!(Holding::from("AsKs").is_ok());
         // same cards
-        assert!(Hand::from("AsAs").is_err());
+        assert!(Holding::from("AsAs").is_err());
         // same Rank, different Suit
-        assert!(Hand::from("AsAd").is_ok());
+        assert!(Holding::from("AsAd").is_ok());
         // different Rank, different Suit
-        assert!(Hand::from("AsKc").is_ok());
+        assert!(Holding::from("AsKc").is_ok());
     }
 
     #[test]
     fn partial_eq() {
         // Aces
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::Ace, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::Ace, Suit::Hearts),
             Card::new(Rank::Ace, Suit::Diamonds),
         )
@@ -93,12 +93,12 @@ mod tests {
         assert_eq!(first, second);
 
         // AK's
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::Ace, Suit::Hearts),
             Card::new(Rank::King, Suit::Diamonds),
         )
@@ -107,12 +107,12 @@ mod tests {
         assert_eq!(first, second);
 
         // KA vs AK
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::King, Suit::Clubs),
             Card::new(Rank::Ace, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         )
@@ -121,28 +121,28 @@ mod tests {
         assert_eq!(first, second);
 
         // AK vs KA
-        let first = Hand::from("AsKs").unwrap();
-        let second = Hand::from("KhAd").unwrap();
+        let first = Holding::from("AsKs").unwrap();
+        let second = Holding::from("KhAd").unwrap();
         assert_eq!(first, second);
         // same cards
-        let first = Hand::from("AsKs").unwrap();
-        let second = Hand::from("AsKs").unwrap();
+        let first = Holding::from("AsKs").unwrap();
+        let second = Holding::from("AsKs").unwrap();
         assert_eq!(first, second);
         // same cards
-        let first = Hand::from("AsKs").unwrap();
-        let second = Hand::from("KsAs").unwrap();
+        let first = Holding::from("AsKs").unwrap();
+        let second = Holding::from("KsAs").unwrap();
         assert_eq!(first, second);
     }
 
     #[test]
     fn partial_eq_ne() {
         // AK vs AQ
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::Ace, Suit::Hearts),
             Card::new(Rank::Queen, Suit::Diamonds),
         )
@@ -154,12 +154,12 @@ mod tests {
     #[test]
     fn partial_ord() {
         // Aces vs Kings
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::Ace, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::King, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         )
@@ -168,12 +168,12 @@ mod tests {
         assert!(first > second);
 
         // AK vs AQ
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::Queen, Suit::Spades),
         )
@@ -182,12 +182,12 @@ mod tests {
         assert!(first > second);
 
         // AQ vs AK
-        let first = Hand::new(
+        let first = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::Queen, Suit::Spades),
         )
         .unwrap();
-        let second = Hand::new(
+        let second = Holding::new(
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         )
