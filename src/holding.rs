@@ -30,8 +30,8 @@ impl<'a> Holding<'a> {
 
     //     let first = Card::from(&expr[..2])?;
     //     let second = Card::from(&expr[2..4])?;
-    //     let cards = [first.to_owned(), second.to_owned()];
-    //     Holding::new(&cards)
+    //     let cards = [first, second];
+    //     Holding::new(cards)
     // }
 }
 

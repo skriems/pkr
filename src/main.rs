@@ -1,10 +1,11 @@
-use pkr::card::*;
-use pkr::deck::*;
-use pkr::error::*;
-use pkr::holding::*;
+use pkr::prelude::*;
+
+use rand;
+use rand::seq::SliceRandom;
+use std::mem;
 
 fn main() {
-    let cards = [
+    let mut cards = [
         Card::new(Rank::Ace, Suit::Clubs),
         Card::new(Rank::King, Suit::Clubs),
         Card::new(Rank::Queen, Suit::Clubs),
@@ -59,9 +60,20 @@ fn main() {
         Card::new(Rank::Two, Suit::Diamonds),
     ];
 
-    if let Ok(deck) = Deck::new(&cards) {
-        println!("{:#?}", deck.holding());
+    let mut rng = rand::thread_rng();
+    cards.shuffle(&mut rng);
+
+    if let Ok(deck) = Deck::new(&mut cards) {
+        let smb = deck.get_holding();
+        let bb = deck.get_holding();
+        println!("{:#?}", smb);
+        println!("{:#?}", bb);
     }
+
+    // println!("Card: {:?}", mem::size_of::<Card>());
+    // println!("Rank: {:?}", mem::size_of::<Rank>());
+    // println!("Suit: {:?}", mem::size_of::<Suit>());
+    // println!("Suit: {:?}", mem::size_of::<[Card; 52]>());
 
     // let first = Card::new(Rank::Ace, Suit::Clubs);
     // let second = Card::new(Rank::Ace, Suit::Spades);

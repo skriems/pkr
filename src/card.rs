@@ -1,7 +1,7 @@
 use crate::error::{Error, Result};
 
 /// Suit
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum Suit {
     Clubs,
     Spades,
@@ -10,7 +10,7 @@ pub enum Suit {
 }
 
 /// Rank
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum Rank {
     Two,
     Three,
@@ -28,7 +28,7 @@ pub enum Rank {
 }
 
 /// Card
-#[derive(Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, PartialOrd)]
 pub struct Card {
     pub rank: Rank,
     pub suit: Suit,
@@ -73,6 +73,7 @@ impl Card {
     }
 }
 
+/// Determine the rank equality for a Card despite its Suit
 impl PartialEq for Card {
     fn eq(&self, other: &Self) -> bool {
         self.rank == other.rank
