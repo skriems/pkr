@@ -8,4 +8,6 @@ pub enum Error {
     ParseError,
     /// occurs when a Holding is created with two equal `Card`s
     InvalidHolding,
+    /// can't occur actually
+    InvalidDeck,
 }
