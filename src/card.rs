@@ -76,7 +76,17 @@ impl Card {
 /// Determine the rank equality for a Card despite its Suit
 impl PartialEq for Card {
     fn eq(&self, other: &Self) -> bool {
-        self.rank == other.rank
+        self.rank == other.rank && self.suit == other.suit
+    }
+}
+
+
+impl Beat for Card {
+    fn beats(&self, other: &Self) -> bool {
+        self.rank > other.rank
+    }
+}
+
     }
 }
 
@@ -321,13 +331,24 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq() {
-        assert!(Card::new(Rank::Ace, Suit::Clubs) == Card::new(Rank::Ace, Suit::Clubs));
-        assert!(Card::new(Rank::Ace, Suit::Clubs) == Card::new(Rank::Ace, Suit::Spades));
-        assert!(Card::new(Rank::Ace, Suit::Clubs) == Card::new(Rank::Ace, Suit::Hearts));
-        assert!(Card::new(Rank::Ace, Suit::Clubs) == Card::new(Rank::Ace, Suit::Diamonds));
+    fn beats() {
+        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Clubs)));
+        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Spades)));
+        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Hearts)));
+        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Diamonds)));
 
-        assert!(Card::new(Rank::Ace, Suit::Clubs) != Card::new(Rank::King, Suit::Diamonds));
+        assert!(Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::King, Suit::Diamonds)));
+    }
+
+
+    #[test]
+    fn partial_eq() {
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::Ace, Suit::Clubs));
+        assert_eq!(Card::new(Rank::King, Suit::Spades), Card::new(Rank::King, Suit::Spades));
+        assert_eq!(Card::new(Rank::Ace, Suit::Hearts), Card::new(Rank::Ace, Suit::Hearts));
+
+        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::Ace, Suit::Diamonds));
+        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::King, Suit::Diamonds));
     }
 
     #[test]
