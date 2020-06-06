@@ -371,12 +371,27 @@ mod tests {
 
     #[test]
     fn beats() {
-        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Clubs)));
-        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Spades)));
-        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Hearts)));
-        assert!(!Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Diamonds)));
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Clubs)),
+            false
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Spades)),
+            false
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Hearts)),
+            false
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::Ace, Suit::Diamonds)),
+            false
+        );
 
-        assert!(Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::King, Suit::Diamonds)));
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::King, Suit::Diamonds)),
+            true
+        );
     }
 
     #[test]
@@ -388,6 +403,31 @@ mod tests {
 
         assert_eq!(
             Card::new(Rank::Ace, Suit::Clubs).splits(&Card::new(Rank::King, Suit::Spades)),
+            false
+        );
+    }
+
+    #[test]
+    fn looses() {
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).looses(&Card::new(Rank::Ace, Suit::Clubs)),
+            false
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).looses(&Card::new(Rank::Ace, Suit::Spades)),
+            false
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).looses(&Card::new(Rank::Ace, Suit::Hearts)),
+            false
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).looses(&Card::new(Rank::Ace, Suit::Diamonds)),
+            false
+        );
+
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).looses(&Card::new(Rank::King, Suit::Diamonds)),
             false
         );
     }
