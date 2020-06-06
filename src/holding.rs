@@ -95,8 +95,8 @@ mod tests {
             Card::new(Rank::Ace, Suit::Spades),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Hearts),
-            Card::new(Rank::Ace, Suit::Diamonds),
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Clubs),
         ];
 
         let first = Holding::new(&first_cards).unwrap();
@@ -106,62 +106,34 @@ mod tests {
 
         // AK's
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
-        ];
-        let second_cards = [
             Card::new(Rank::Ace, Suit::Hearts),
             Card::new(Rank::King, Suit::Diamonds),
         ];
-        let first = Holding::new(&first_cards).unwrap();
-        let second = Holding::new(&second_cards).unwrap();
-
-        assert_eq!(first, second);
-
-        // KA vs AK
-        let first_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Spades),
-        ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::new(Rank::King, Suit::Diamonds),
+            Card::new(Rank::Ace, Suit::Hearts),
         ];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
 
         assert_eq!(first, second);
-
-        // // AK vs KA
-        // let first = Holding::from("AsKs").unwrap();
-        // let second = Holding::from("KhAd").unwrap();
-        // assert_eq!(first, second);
-        // // same cards
-        // let first = Holding::from("AsKs").unwrap();
-        // let second = Holding::from("AsKs").unwrap();
-        // assert_eq!(first, second);
-        // // same cards
-        // let first = Holding::from("AsKs").unwrap();
-        // let second = Holding::from("KsAs").unwrap();
-        // assert_eq!(first, second);
     }
 
     #[test]
-    fn partial_eq_ne() {
+    fn partial_ne() {
         // AK vs AQ
         let first_cards = [
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Spades),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Hearts),
-            Card::new(Rank::Queen, Suit::Diamonds),
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Diamonds),
         ];
 
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
-
-        assert!(first != second);
+        assert_ne!(first, second);
     }
 
     #[test]
