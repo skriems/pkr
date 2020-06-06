@@ -6,8 +6,7 @@ fn main() {
     let mut count = 0;
 
     for _ in 0..1_000_000 {
-        let mut deck = Deck::new();
-        deck.shuffle();
+        let deck = Deck::new();
         let holding = Holding::new(&deck.cards[..2]).unwrap();
         let other = Holding::new(&deck.cards[2..4]).unwrap();
 

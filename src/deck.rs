@@ -13,7 +13,7 @@ pub struct Deck {
 
 impl Deck {
     pub fn new() -> Self {
-        let cards: [Card; 52] = [
+        let mut cards: [Card; 52] = [
             Card::new(Rank::Ace, Suit::Clubs),
             Card::new(Rank::King, Suit::Clubs),
             Card::new(Rank::Queen, Suit::Clubs),
@@ -68,15 +68,9 @@ impl Deck {
             Card::new(Rank::Two, Suit::Diamonds),
         ];
 
-        let rng = ThreadRng::default();
-        Deck { cards, rng }
-    }
-
-    pub fn shuffle(&mut self) {
-        let mut rng = self.rng;
-        let mut cards = self.cards;
+        let mut rng = ThreadRng::default();
         cards.shuffle(&mut rng);
-        self.cards = cards;
+        Deck { cards, rng }
     }
 
     pub fn get_holding(&mut self) -> Result<Holding> {
@@ -91,5 +85,14 @@ mod tests {
     #[test]
     fn len() {
         assert_eq!(Deck::new().cards.len(), 52);
+    }
+
+    #[test]
+    fn shuffle() {
+        let mut deck1 = Deck::new();
+        let mut deck2 = Deck::new();
+        let holding = deck1.get_holding().unwrap();
+        let other = deck2.get_holding().unwrap();
+        assert_ne!(holding, other);
     }
 }
