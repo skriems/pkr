@@ -25,7 +25,7 @@ impl<'a> Holding<'a> {
     }
 
     pub fn high_card(&self) -> &Card {
-        if self.cards[0].beats(&self.cards[1]) || self.cards[0].splits(&self.cards[1]) {
+        if self.cards[0].beats(&self.cards[1]) || self.cards[0].pairs(&self.cards[1]) {
             &self.cards[0]
         } else {
             &self.cards[1]
@@ -33,7 +33,7 @@ impl<'a> Holding<'a> {
     }
 
     pub fn low_card(&self) -> &Card {
-        if self.cards[0].beats(&self.cards[1]) || self.cards[0].splits(&self.cards[1]) {
+        if self.cards[0].beats(&self.cards[1]) || self.cards[0].pairs(&self.cards[1]) {
             &self.cards[1]
         } else {
             &self.cards[0]
@@ -57,22 +57,22 @@ impl<'a> Beats for Holding<'a> {
         // having two overcards AK vs QJ or KA vs JQ
         self.high_card().beats(other.high_card()) && self.low_card().beats(other.low_card()) ||
         // higher high_card, same low_card
-        self.high_card().beats(other.high_card()) && self.low_card().splits(other.low_card()) ||
+        self.high_card().beats(other.high_card()) && self.low_card().pairs(other.low_card()) ||
         // higher high_card, lower low_card
         self.high_card().beats(other.high_card()) && self.low_card().looses(other.low_card()) ||
         // having a better kicker
-        self.high_card().splits(other.high_card()) && self.low_card().beats(other.low_card())
+        self.high_card().pairs(other.high_card()) && self.low_card().beats(other.low_card())
     }
 
-    fn splits(&self, other: &Self) -> bool {
+    fn pairs(&self, other: &Self) -> bool {
         // AK vs AQ
-        self.cards[0].splits(&other.cards[0]) && self.cards[1].splits(&other.cards[1]) ||
+        self.cards[0].pairs(&other.cards[0]) && self.cards[1].pairs(&other.cards[1]) ||
         // KA vs AK
-        self.cards[1].splits(&other.cards[0]) && self.cards[0].splits(&other.cards[1])  ||
+        self.cards[1].pairs(&other.cards[0]) && self.cards[0].pairs(&other.cards[1])  ||
         // AK vs KA
-        self.cards[0].splits(&other.cards[1]) && self.cards[1].splits(&other.cards[0])  ||
+        self.cards[0].pairs(&other.cards[1]) && self.cards[1].pairs(&other.cards[0])  ||
         // KA vs KA
-        self.cards[1].splits(&other.cards[1]) && self.cards[0].splits(&other.cards[0])
+        self.cards[1].pairs(&other.cards[1]) && self.cards[0].pairs(&other.cards[0])
     }
 }
 
@@ -380,7 +380,7 @@ mod tests {
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
-        assert_eq!(holding.splits(&other), true);
+        assert_eq!(holding.pairs(&other), true);
 
         // KA vs AK
         let first_cards = [
@@ -394,7 +394,7 @@ mod tests {
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
-        assert_eq!(holding.splits(&other), true);
+        assert_eq!(holding.pairs(&other), true);
 
         // AK vs KA
         let first_cards = [
@@ -408,7 +408,7 @@ mod tests {
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
-        assert_eq!(holding.splits(&other), true);
+        assert_eq!(holding.pairs(&other), true);
 
         // KA vs KA
         let first_cards = [
@@ -422,7 +422,7 @@ mod tests {
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
-        assert_eq!(holding.splits(&other), true);
+        assert_eq!(holding.pairs(&other), true);
 
         // AK vs AQ
         let first_cards = [
@@ -436,7 +436,7 @@ mod tests {
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
-        assert_eq!(holding.splits(&other), false);
+        assert_eq!(holding.pairs(&other), false);
 
         // 87 vs 87
         let first_cards = [
@@ -450,7 +450,7 @@ mod tests {
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
-        assert_eq!(holding.splits(&other), true);
+        assert_eq!(holding.pairs(&other), true);
     }
 
     #[test]

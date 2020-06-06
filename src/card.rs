@@ -87,7 +87,7 @@ impl Beats for Card {
         self.rank > other.rank
     }
 
-    fn splits(&self, other: &Self) -> bool {
+    fn pairs(&self, other: &Self) -> bool {
         self.rank == other.rank
     }
 }
@@ -397,12 +397,12 @@ mod tests {
     #[test]
     fn splits() {
         assert_eq!(
-            Card::new(Rank::Ace, Suit::Clubs).splits(&Card::new(Rank::Ace, Suit::Spades)),
+            Card::new(Rank::Ace, Suit::Clubs).pairs(&Card::new(Rank::Ace, Suit::Spades)),
             true
         );
 
         assert_eq!(
-            Card::new(Rank::Ace, Suit::Clubs).splits(&Card::new(Rank::King, Suit::Spades)),
+            Card::new(Rank::Ace, Suit::Clubs).pairs(&Card::new(Rank::King, Suit::Spades)),
             false
         );
     }

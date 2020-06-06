@@ -9,9 +9,9 @@ pub mod range;
 pub trait Beats<Rhs: ?Sized = Self> {
     fn beats(&self, other: &Rhs) -> bool;
 
-    fn splits(&self, other: &Rhs) -> bool;
+    fn pairs(&self, other: &Rhs) -> bool;
 
     fn looses(&self, other: &Rhs) -> bool {
-        !self.beats(other) && !self.splits(other)
+        !self.beats(other) && !self.pairs(other)
     }
 }
