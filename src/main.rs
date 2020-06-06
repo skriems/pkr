@@ -61,12 +61,22 @@ fn main() {
     ];
 
     let mut rng = rand::thread_rng();
-    cards.shuffle(&mut rng);
 
-    let first = &cards[..2];
-    let second = &cards[2..4];
-    let rest = &cards[4..9];
-    println!("{}{}\t{}{}\t\t{:?}", first[0], first[1], second[0], second[1], rest);
+    for _ in 0..100 {
+        cards.shuffle(&mut rng);
+        let first = Holding::new(&cards[..2]).unwrap();
+        let second = Holding::new(&cards[2..4]).unwrap();
+        // let rest = &cards[4..9];
+
+        println!(
+            "{}{} beats {}{} :: {}",
+            first.high_card(),
+            first.low_card(),
+            second.high_card(),
+            second.low_card(),
+            first.beats(&second)
+        );
+    }
 
     // if let Ok(deck) = Deck::new(&mut cards) {
     //     let smb = &deck.get_holding();
