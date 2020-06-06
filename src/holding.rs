@@ -40,6 +40,10 @@ impl<'a> Holding<'a> {
         }
     }
 
+    pub fn is_pocket_pair(&self) -> bool {
+        self.cards[0].pairs(&self.cards[1])
+    }
+
     // pub fn from(expr: &'a str) -> Result<Self> {
     //     if expr.len() != 4 {
     //         return Err(Error::ParseError);
@@ -56,12 +60,22 @@ impl<'a> Beats for Holding<'a> {
     fn beats(&self, other: &Self) -> bool {
         // having two overcards AK vs QJ or KA vs JQ
         self.high_card().beats(other.high_card()) && self.low_card().beats(other.low_card()) ||
+
         // higher high_card, same low_card
         self.high_card().beats(other.high_card()) && self.low_card().pairs(other.low_card()) ||
+
         // higher high_card, lower low_card
         self.high_card().beats(other.high_card()) && self.low_card().looses(other.low_card()) ||
+
         // having a better kicker
-        self.high_card().pairs(other.high_card()) && self.low_card().beats(other.low_card())
+        self.high_card().pairs(other.high_card()) && self.low_card().beats(other.low_card()) ||
+
+        // pocket pairs: check them late because they are rather rare
+
+        // pocket pair vs regular holding
+        self.is_pocket_pair() && !other.is_pocket_pair() ||
+        // pocket pair vs other pocket pair
+        self.is_pocket_pair() && other.is_pocket_pair() && self.high_card().beats(other.high_card())
     }
 
     fn pairs(&self, other: &Self) -> bool {
@@ -364,6 +378,48 @@ mod tests {
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
+
+        // 55 vs AK
+        let first_cards = [
+            Card::new(Rank::Five, Suit::Spades),
+            Card::new(Rank::Five, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Diamonds),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // 55 vs 44
+        let first_cards = [
+            Card::new(Rank::Five, Suit::Spades),
+            Card::new(Rank::Five, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Four, Suit::Diamonds),
+            Card::new(Rank::Four, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // 55 vs 55
+        let first_cards = [
+            Card::new(Rank::Five, Suit::Spades),
+            Card::new(Rank::Five, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Five, Suit::Diamonds),
+            Card::new(Rank::Five, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), false);
     }
 
     #[test]
@@ -451,6 +507,37 @@ mod tests {
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), true);
+
+        // 55 vs 55
+        let first_cards = [
+            Card::new(Rank::Five, Suit::Spades),
+            Card::new(Rank::Five, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Four, Suit::Diamonds),
+            Card::new(Rank::Four, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.pairs(&other), false);
+    }
+
+    #[test]
+    fn looses() {
+        // 44 vs 55
+        let first_cards = [
+            Card::new(Rank::Four, Suit::Diamonds),
+            Card::new(Rank::Four, Suit::Spades),
+        ];
+        let second_cards = [
+            Card::new(Rank::Five, Suit::Spades),
+            Card::new(Rank::Five, Suit::Clubs),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.looses(&other), true);
     }
 
     #[test]
