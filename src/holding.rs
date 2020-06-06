@@ -1,6 +1,6 @@
-use crate::Beat;
 use crate::card::*;
 use crate::error::{Error, Result};
+use crate::Beats;
 
 /// A Players Holding Cards
 #[derive(Debug, PartialOrd)]
@@ -24,6 +24,22 @@ impl<'a> Holding<'a> {
         Ok(Holding { cards })
     }
 
+    pub fn high_card(&self) -> &Card {
+        if self.cards[0].beats(&self.cards[1]) || self.cards[0].splits(&self.cards[1]) {
+            &self.cards[0]
+        } else {
+            &self.cards[1]
+        }
+    }
+
+    pub fn low_card(&self) -> &Card {
+        if self.cards[0].beats(&self.cards[1]) || self.cards[0].splits(&self.cards[1]) {
+            &self.cards[1]
+        } else {
+            &self.cards[0]
+        }
+    }
+
     // pub fn from(expr: &'a str) -> Result<Self> {
     //     if expr.len() != 4 {
     //         return Err(Error::ParseError);
@@ -34,6 +50,30 @@ impl<'a> Holding<'a> {
     //     let cards = [first, second];
     //     Holding::new(cards)
     // }
+}
+
+impl<'a> Beats for Holding<'a> {
+    fn beats(&self, other: &Self) -> bool {
+        // having two overcards AK vs QJ or KA vs JQ
+        self.high_card().beats(other.high_card()) && self.low_card().beats(other.low_card()) ||
+        // higher high_card, same low_card
+        self.high_card().beats(other.high_card()) && self.low_card().splits(other.low_card()) ||
+        // higher high_card, lower low_card
+        self.high_card().beats(other.high_card()) && self.low_card().looses(other.low_card()) ||
+        // having a better kicker
+        self.high_card().splits(other.high_card()) && self.low_card().beats(other.low_card())
+    }
+
+    fn splits(&self, other: &Self) -> bool {
+        // AK vs AQ
+        self.cards[0].splits(&other.cards[0]) && self.cards[1].splits(&other.cards[1]) ||
+        // KA vs AK
+        self.cards[1].splits(&other.cards[0]) && self.cards[0].splits(&other.cards[1])  ||
+        // AK vs KA
+        self.cards[0].splits(&other.cards[1]) && self.cards[1].splits(&other.cards[0])  ||
+        // KA vs KA
+        self.cards[1].splits(&other.cards[1]) && self.cards[0].splits(&other.cards[0])
+    }
 }
 
 impl<'a> PartialEq for Holding<'a> {
@@ -117,6 +157,300 @@ mod tests {
         let second = Holding::new(&second_cards).unwrap();
 
         assert_eq!(first, second);
+    }
+
+    #[test]
+    fn high_card() {
+        // AK -> &A
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let holding = Holding::new(&first_cards).unwrap();
+        assert_eq!(holding.high_card(), &Card::new(Rank::Ace, Suit::Clubs));
+    }
+
+    #[test]
+    fn low_card() {
+        // AK -> &K
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let holding = Holding::new(&first_cards).unwrap();
+        assert_eq!(holding.low_card(), &Card::new(Rank::King, Suit::Clubs));
+    }
+
+    #[test]
+    fn beats() {
+        // two overcards: AK vs QJ
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Queen, Suit::Spades),
+            Card::new(Rank::Jack, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // two overcards: KA vs QJ
+        let first_cards = [
+            Card::new(Rank::King, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Queen, Suit::Spades),
+            Card::new(Rank::Jack, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // two overcards: AK vs JQ
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Jack, Suit::Spades),
+            Card::new(Rank::Queen, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // better kicker: AK vs AQ
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::Queen, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // better kicker: KA vs AQ
+        let first_cards = [
+            Card::new(Rank::King, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::Queen, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // better kicker: AK vs QA
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Queen, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // better kicker: KA vs QA
+        let first_cards = [
+            Card::new(Rank::King, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Queen, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // AK vs AK
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Diamonds),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), false);
+
+        // KA vs AK
+        let first_cards = [
+            Card::new(Rank::King, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Diamonds),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), false);
+
+        // AK vs KA
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+        let second_cards = [
+            Card::new(Rank::King, Suit::Diamonds),
+            Card::new(Rank::Ace, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), false);
+
+        // KA vs KA
+        let first_cards = [
+            Card::new(Rank::King, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::King, Suit::Diamonds),
+            Card::new(Rank::Ace, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), false);
+
+        // AJ vs KQ
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::Jack, Suit::Spades),
+        ];
+        let second_cards = [
+            Card::new(Rank::King, Suit::Diamonds),
+            Card::new(Rank::Queen, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+
+        // J7 vs T8
+        let first_cards = [
+            Card::new(Rank::Jack, Suit::Spades),
+            Card::new(Rank::Seven, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ten, Suit::Diamonds),
+            Card::new(Rank::Eight, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), true);
+    }
+
+    #[test]
+    fn splits() {
+        // AK vs AK
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.splits(&other), true);
+
+        // KA vs AK
+        let first_cards = [
+            Card::new(Rank::King, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.splits(&other), true);
+
+        // AK vs KA
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::King, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.splits(&other), true);
+
+        // KA vs KA
+        let first_cards = [
+            Card::new(Rank::King, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::King, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.splits(&other), true);
+
+        // AK vs AQ
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::Queen, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.splits(&other), false);
+
+        // 87 vs 87
+        let first_cards = [
+            Card::new(Rank::Eight, Suit::Clubs),
+            Card::new(Rank::Seven, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Eight, Suit::Spades),
+            Card::new(Rank::Seven, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.splits(&other), true);
     }
 
     #[test]

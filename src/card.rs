@@ -1,5 +1,5 @@
-use crate::Beat;
 use crate::error::{Error, Result};
+use crate::Beats;
 use std::fmt;
 
 /// Suit
@@ -82,13 +82,15 @@ impl PartialEq for Card {
     }
 }
 
-
-impl Beat for Card {
+impl Beats for Card {
     fn beats(&self, other: &Self) -> bool {
         self.rank > other.rank
     }
-}
 
+    fn splits(&self, other: &Self) -> bool {
+        self.rank == other.rank
+    }
+}
 
 impl fmt::Display for Suit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -379,15 +381,42 @@ mod tests {
         assert!(Card::new(Rank::Ace, Suit::Clubs).beats(&Card::new(Rank::King, Suit::Diamonds)));
     }
 
+    #[test]
+    fn splits() {
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).splits(&Card::new(Rank::Ace, Suit::Spades)),
+            true
+        );
+
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs).splits(&Card::new(Rank::King, Suit::Spades)),
+            false
+        );
+    }
 
     #[test]
     fn partial_eq() {
-        assert_eq!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::Ace, Suit::Clubs));
-        assert_eq!(Card::new(Rank::King, Suit::Spades), Card::new(Rank::King, Suit::Spades));
-        assert_eq!(Card::new(Rank::Ace, Suit::Hearts), Card::new(Rank::Ace, Suit::Hearts));
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Clubs)
+        );
+        assert_eq!(
+            Card::new(Rank::King, Suit::Spades),
+            Card::new(Rank::King, Suit::Spades)
+        );
+        assert_eq!(
+            Card::new(Rank::Ace, Suit::Hearts),
+            Card::new(Rank::Ace, Suit::Hearts)
+        );
 
-        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::Ace, Suit::Diamonds));
-        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::King, Suit::Diamonds));
+        assert_ne!(
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Diamonds)
+        );
+        assert_ne!(
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Diamonds)
+        );
     }
 
     #[test]
