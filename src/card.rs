@@ -1,4 +1,6 @@
+use crate::Beat;
 use crate::error::{Error, Result};
+use std::fmt;
 
 /// Suit
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -87,6 +89,43 @@ impl Beat for Card {
     }
 }
 
+
+impl fmt::Display for Suit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Suit::Clubs => write!(f, "{}", "\u{2663}"),
+            Suit::Spades => write!(f, "{}", "\u{2660}"),
+            Suit::Hearts => write!(f, "{}", "\u{2764}"),
+            Suit::Diamonds => write!(f, "{}", "\u{2666}")
+        }
+    }
+
+}
+
+impl fmt::Display for Rank {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+             Rank::Ace => write!(f, "{}", "A"),
+             Rank::King => write!(f, "{}", "K"),
+             Rank::Queen => write!(f, "{}", "Q"),
+             Rank::Jack => write!(f, "{}", "J"),
+             Rank::Ten => write!(f, "{}", "T"),
+             Rank::Nine => write!(f, "{}", "9"),
+             Rank::Eight => write!(f, "{}", "8"),
+             Rank::Seven => write!(f, "{}", "7"),
+             Rank::Six => write!(f, "{}", "6"),
+             Rank::Five => write!(f, "{}", "5"),
+             Rank::Four => write!(f, "{}", "4"),
+             Rank::Three => write!(f, "{}", "3"),
+             Rank::Two =>  write!(f, "{}", "2"),
+        }
+    }
+
+}
+
+impl fmt::Display for Card {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", self.rank, self.suit)
     }
 }
 
