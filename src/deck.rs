@@ -10,6 +10,7 @@ use rand::seq::SliceRandom;
 pub struct Deck<'a> {
     cards: &'a mut [Card],
     rng: ThreadRng,
+    idx: u8,
 }
 
 impl<'a> Deck<'a> {
@@ -17,19 +18,28 @@ impl<'a> Deck<'a> {
         if cards.len() != 52 {
             return Err(Error::InvalidDeck);
         }
+
         let mut rng = ThreadRng::default();
+        let idx = 0;
+        Ok(Deck { cards, rng, idx })
+    }
+
+    pub fn shuffled(cards: &'a mut [Card]) -> Result<Self> {
+        if cards.len() != 52 {
+            return Err(Error::InvalidDeck);
+        }
+
+        let mut rng = ThreadRng::default();
+        let idx = 0;
+
         cards.shuffle(&mut rng);
-        Ok(Deck { cards, rng })
+        Ok(Deck { cards, rng, idx })
     }
 
     pub fn get_holding(&mut self) -> Result<Holding> {
-        self.shuffle();
         Holding::new(&self.cards[..2])
     }
 
-    pub fn shuffle(&mut self) {
-        self.cards.shuffle(&mut self.rng);
-    }
 }
 
 #[cfg(test)]

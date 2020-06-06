@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 use std::mem;
 
 fn main() {
-    let mut cards = [
+    let mut cards: [Card; 52] = [
         Card::new(Rank::Ace, Suit::Clubs),
         Card::new(Rank::King, Suit::Clubs),
         Card::new(Rank::Queen, Suit::Clubs),
@@ -63,12 +63,17 @@ fn main() {
     let mut rng = rand::thread_rng();
     cards.shuffle(&mut rng);
 
-    if let Ok(deck) = Deck::new(&mut cards) {
-        let smb = deck.get_holding();
-        let bb = deck.get_holding();
-        println!("{:#?}", smb);
-        println!("{:#?}", bb);
-    }
+    let first = &cards[..2];
+    let second = &cards[2..4];
+    let rest = &cards[4..9];
+    println!("{}{}\t{}{}\t\t{:?}", first[0], first[1], second[0], second[1], rest);
+
+    // if let Ok(deck) = Deck::new(&mut cards) {
+    //     let smb = &deck.get_holding();
+    //     // let bb = deck.get_holding();
+    //     println!("{:#?}", smb);
+    //     // println!("{:#?}", bb);
+    // }
 
     // println!("Card: {:?}", mem::size_of::<Card>());
     // println!("Rank: {:?}", mem::size_of::<Rank>());

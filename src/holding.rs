@@ -1,3 +1,4 @@
+use crate::Beat;
 use crate::card::*;
 use crate::error::{Error, Result};
 
