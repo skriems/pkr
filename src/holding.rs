@@ -58,28 +58,34 @@ impl<'a> Holding<'a> {
 
 impl<'a> Beats for Holding<'a> {
     fn beats(&self, other: &Self) -> bool {
-        // having two overcards AK vs QJ or KA vs JQ
-        self.high_card().beats(other.high_card()) && self.low_card().beats(other.low_card()) ||
+        // pocket pairs: check them late because they are rather rare
+        if self.is_pocket_pair() {
+            if !other.is_pocket_pair() {
+                return true;
+            }
+            return self.high_card().beats(other.high_card());
+        }
 
-        // higher high_card, same low_card
-        self.high_card().beats(other.high_card()) && self.low_card().pairs(other.low_card()) ||
+        if other.is_pocket_pair() && !self.is_pocket_pair() {
+            return false;
+        };
 
-        // higher high_card, lower low_card
-        self.high_card().beats(other.high_card()) && self.low_card().looses(other.low_card()) ||
+        // higher high_card
+        if self.high_card().beats(other.high_card()) {
+            return true;
+        }
 
         // having a better kicker
-        self.high_card().pairs(other.high_card()) && self.low_card().beats(other.low_card()) ||
+        if self.high_card().pairs(other.high_card()) {
+            return self.low_card().beats(other.low_card());
+        }
 
-        // pocket pairs: check them late because they are rather rare
-
-        // pocket pair vs regular holding
-        self.is_pocket_pair() && !other.is_pocket_pair() ||
-        // pocket pair vs other pocket pair
-        self.is_pocket_pair() && other.is_pocket_pair() && self.high_card().beats(other.high_card())
+        // i.e. same hand
+        return false;
     }
 
     fn pairs(&self, other: &Self) -> bool {
-        // AK vs AQ
+        // AK vs AK
         self.cards[0].pairs(&other.cards[0]) && self.cards[1].pairs(&other.cards[1]) ||
         // KA vs AK
         self.cards[1].pairs(&other.cards[0]) && self.cards[0].pairs(&other.cards[1])  ||
@@ -420,10 +426,24 @@ mod tests {
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), false);
+
+        // AK vs 55
+        let first_cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let second_cards = [
+            Card::new(Rank::Five, Suit::Diamonds),
+            Card::new(Rank::Five, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&first_cards).unwrap();
+        let other = Holding::new(&second_cards).unwrap();
+        assert_eq!(holding.beats(&other), false);
     }
 
     #[test]
-    fn splits() {
+    fn pairs() {
         // AK vs AK
         let first_cards = [
             Card::new(Rank::Ace, Suit::Clubs),
