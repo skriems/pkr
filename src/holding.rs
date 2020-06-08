@@ -44,6 +44,16 @@ impl<'a> Holding<'a> {
         self.cards[0].pairs(&self.cards[1])
     }
 
+    pub fn is_suited(&self) -> bool {
+        self.cards[0].suit == self.cards[1].suit
+    }
+
+    pub fn is_connected(&self) -> bool {
+        let discriminant_1 = self.cards[0].rank as u32;
+        let discriminant_2 = self.cards[1].rank as u32;
+        (discriminant_1 - discriminant_2) * (discriminant_1 - discriminant_2) == 1
+    }
+
     // pub fn from(expr: &'a str) -> Result<Self> {
     //     if expr.len() != 4 {
     //         return Err(Error::ParseError);
@@ -620,6 +630,21 @@ mod tests {
         let second = Holding::new(&second_cards).unwrap();
 
         assert!(first < second);
+    }
+
+    #[test]
+    fn is_suited() {
+        assert!(false);
+    }
+
+    #[test]
+    fn is_connected() {
+        assert!(false);
+    }
+
+    #[test]
+    fn is_pocket_pair() {
+        assert!(false);
     }
 
     // #[test]
