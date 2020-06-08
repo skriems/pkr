@@ -3,53 +3,36 @@ use pkr::prelude::*;
 // use std::mem;
 
 fn main() {
-    let mut count = 0;
-
-    for _ in 0..1_000_000 {
+    for _ in 0..1 {
         let deck = Deck::new();
-        let holding = Holding::new(&deck.cards[..2]).unwrap();
-        let other = Holding::new(&deck.cards[2..4]).unwrap();
+        let hero = Holding::new(&deck.cards[..2]).unwrap();
+        let vilan = Holding::new(&deck.cards[2..4]).unwrap();
 
-        if holding.beats(&other) {
-            count += 1;
-        };
-        // if !(first.is_pocket_pair() || second.is_pocket_pair()) {
-        //     continue;
-        // }
+        let mut iter = deck.cards[4..].iter();
+        let flop_1 = iter.next();
+        let flop_2 = iter.next();
+        let flop_3 = iter.next();
+        let _ = iter.next();
+        let turn = iter.next();
+        let _ = iter.next();
+        let river = iter.next();
 
-        // println!(
-        //     "{}{} beats {}{} :: {}",
-        //     first.high_card(),
-        //     first.low_card(),
-        //     second.high_card(),
-        //     second.low_card(),
-        //     first.beats(&second)
-        // );
+        println!(
+            "[{}{}] vs. [{}{}] | {}{}{} | {} | {}",
+            hero.high_card(),
+            hero.low_card(),
+            vilan.high_card(),
+            vilan.low_card(),
+            flop_1.unwrap(),
+            flop_2.unwrap(),
+            flop_3.unwrap(),
+            turn.unwrap(),
+            river.unwrap()
+        );
     }
-
-    println!("{} beats!", count);
-
-    // if let Ok(deck) = Deck::new(&mut cards) {
-    //     let smb = &deck.get_holding();
-    //     // let bb = deck.get_holding();
-    //     println!("{:#?}", smb);
-    //     // println!("{:#?}", bb);
-    // }
 
     // println!("Card uses {:?} bytes", mem::size_of::<Card>());
     // println!("Rank uses {:?} bytes", mem::size_of::<Rank>());
     // println!("Suit uses {:?} bytes", mem::size_of::<Suit>());
     // println!("Deck uses {:?} bytes", mem::size_of::<[Card; 52]>());
-
-    // let first = Card::new(Rank::Ace, Suit::Clubs);
-    // let second = Card::new(Rank::Ace, Suit::Spades);
-    // println!("{:?}", first);
-    // let hand = Holding::new(first, second).unwrap();
-    // println!("{:?}", hand);
-    // let hand = Holding::from("AsKs").unwrap();
-    // println!("{:?}", hand);
-
-    // for (idx, card) in Deck::new().into_iter().enumerate() {
-    //     println!("{}: {:?}", idx + 1, card);
-    // }
 }
