@@ -451,4 +451,9 @@ mod tests {
 
         assert_eq!(Card::new(Rank::King, Suit::Diamonds) < Card::new(Rank::Ace, Suit::Clubs) ,true);
     }
+
+    #[test]
+    fn mem() {
+        assert_eq!(std::mem::size_of::<Card>(), 2);
+    }
 }

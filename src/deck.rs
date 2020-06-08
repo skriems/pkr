@@ -94,4 +94,9 @@ mod tests {
         let other = deck2.get_holding().unwrap();
         assert_ne!(holding, other);
     }
+
+    #[test]
+    fn mem() {
+        assert_eq!(std::mem::size_of::<Deck>(), 104);
+    }
 }

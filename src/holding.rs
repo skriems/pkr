@@ -704,15 +704,8 @@ mod tests {
         assert_eq!(holding.is_pocket_pair(), false);
     }
 
-    // #[test]
-    // fn test_slice() {
-    //     let cards = [
-    //         Card::new(Rank::Ace, Suit::Clubs),
-    //         Card::new(Rank::King, Suit::Spades),
-    //         Card::new(Rank::Jack, Suit::Spades),
-    //     ];
-
-    //     let holding = HoldingSlice::new(&cards[..2]);
-    //     assert_eq!(holding.cards.len(), 2);
-    // }
+    #[test]
+    fn mem() {
+        assert_eq!(std::mem::size_of::<Holding>(), 16);
+    }
 }
