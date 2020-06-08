@@ -1,136 +1,64 @@
 use crate::card::*;
-use crate::error::Result;
+use crate::deck::*;
 use crate::holding::*;
 
-use rand::rngs::ThreadRng;
-use rand::seq::SliceRandom;
-
-
 /// A Hand is dealt for N players and starts with a shuffled deck of cards.
-pub struct Hand {
-    pub deck: [Card; 52],
+pub struct Hand<'a> {
+    pub deck: &'a Deck,
+    players: [Option<Holding<'a>>; 9],
+    n_players: usize,
 }
 
-impl Hand {
-    pub fn new() -> Self {
-        let mut deck: [Card; 52] = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Queen, Suit::Clubs),
-            Card::new(Rank::Jack, Suit::Clubs),
-            Card::new(Rank::Ten, Suit::Clubs),
-            Card::new(Rank::Nine, Suit::Clubs),
-            Card::new(Rank::Eight, Suit::Clubs),
-            Card::new(Rank::Seven, Suit::Clubs),
-            Card::new(Rank::Six, Suit::Clubs),
-            Card::new(Rank::Five, Suit::Clubs),
-            Card::new(Rank::Four, Suit::Clubs),
-            Card::new(Rank::Three, Suit::Clubs),
-            Card::new(Rank::Two, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::Queen, Suit::Spades),
-            Card::new(Rank::Jack, Suit::Spades),
-            Card::new(Rank::Ten, Suit::Spades),
-            Card::new(Rank::Nine, Suit::Spades),
-            Card::new(Rank::Eight, Suit::Spades),
-            Card::new(Rank::Seven, Suit::Spades),
-            Card::new(Rank::Six, Suit::Spades),
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Four, Suit::Spades),
-            Card::new(Rank::Three, Suit::Spades),
-            Card::new(Rank::Two, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Hearts),
-            Card::new(Rank::King, Suit::Hearts),
-            Card::new(Rank::Queen, Suit::Hearts),
-            Card::new(Rank::Jack, Suit::Hearts),
-            Card::new(Rank::Ten, Suit::Hearts),
-            Card::new(Rank::Nine, Suit::Hearts),
-            Card::new(Rank::Eight, Suit::Hearts),
-            Card::new(Rank::Seven, Suit::Hearts),
-            Card::new(Rank::Six, Suit::Hearts),
-            Card::new(Rank::Five, Suit::Hearts),
-            Card::new(Rank::Four, Suit::Hearts),
-            Card::new(Rank::Three, Suit::Hearts),
-            Card::new(Rank::Two, Suit::Hearts),
-            Card::new(Rank::Ace, Suit::Diamonds),
-            Card::new(Rank::King, Suit::Diamonds),
-            Card::new(Rank::Queen, Suit::Diamonds),
-            Card::new(Rank::Jack, Suit::Diamonds),
-            Card::new(Rank::Ten, Suit::Diamonds),
-            Card::new(Rank::Nine, Suit::Diamonds),
-            Card::new(Rank::Eight, Suit::Diamonds),
-            Card::new(Rank::Seven, Suit::Diamonds),
-            Card::new(Rank::Six, Suit::Diamonds),
-            Card::new(Rank::Five, Suit::Diamonds),
-            Card::new(Rank::Four, Suit::Diamonds),
-            Card::new(Rank::Three, Suit::Diamonds),
-            Card::new(Rank::Two, Suit::Diamonds),
-        ];
-
-        let mut rng = ThreadRng::default();
-        deck.shuffle(&mut rng);
-        Hand { deck }
+impl<'a> Hand<'a> {
+    pub fn new(deck: &'a Deck) -> Self {
+        Hand {
+            deck,
+            players: [None, None, None, None, None, None, None, None, None],
+            n_players: 0,
+        }
     }
-}
 
-impl Default for Hand {
-    fn default() -> Self {
-        let deck: [Card; 52] = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Queen, Suit::Clubs),
-            Card::new(Rank::Jack, Suit::Clubs),
-            Card::new(Rank::Ten, Suit::Clubs),
-            Card::new(Rank::Nine, Suit::Clubs),
-            Card::new(Rank::Eight, Suit::Clubs),
-            Card::new(Rank::Seven, Suit::Clubs),
-            Card::new(Rank::Six, Suit::Clubs),
-            Card::new(Rank::Five, Suit::Clubs),
-            Card::new(Rank::Four, Suit::Clubs),
-            Card::new(Rank::Three, Suit::Clubs),
-            Card::new(Rank::Two, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::Queen, Suit::Spades),
-            Card::new(Rank::Jack, Suit::Spades),
-            Card::new(Rank::Ten, Suit::Spades),
-            Card::new(Rank::Nine, Suit::Spades),
-            Card::new(Rank::Eight, Suit::Spades),
-            Card::new(Rank::Seven, Suit::Spades),
-            Card::new(Rank::Six, Suit::Spades),
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Four, Suit::Spades),
-            Card::new(Rank::Three, Suit::Spades),
-            Card::new(Rank::Two, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Hearts),
-            Card::new(Rank::King, Suit::Hearts),
-            Card::new(Rank::Queen, Suit::Hearts),
-            Card::new(Rank::Jack, Suit::Hearts),
-            Card::new(Rank::Ten, Suit::Hearts),
-            Card::new(Rank::Nine, Suit::Hearts),
-            Card::new(Rank::Eight, Suit::Hearts),
-            Card::new(Rank::Seven, Suit::Hearts),
-            Card::new(Rank::Six, Suit::Hearts),
-            Card::new(Rank::Five, Suit::Hearts),
-            Card::new(Rank::Four, Suit::Hearts),
-            Card::new(Rank::Three, Suit::Hearts),
-            Card::new(Rank::Two, Suit::Hearts),
-            Card::new(Rank::Ace, Suit::Diamonds),
-            Card::new(Rank::King, Suit::Diamonds),
-            Card::new(Rank::Queen, Suit::Diamonds),
-            Card::new(Rank::Jack, Suit::Diamonds),
-            Card::new(Rank::Ten, Suit::Diamonds),
-            Card::new(Rank::Nine, Suit::Diamonds),
-            Card::new(Rank::Eight, Suit::Diamonds),
-            Card::new(Rank::Seven, Suit::Diamonds),
-            Card::new(Rank::Six, Suit::Diamonds),
-            Card::new(Rank::Five, Suit::Diamonds),
-            Card::new(Rank::Four, Suit::Diamonds),
-            Card::new(Rank::Three, Suit::Diamonds),
-            Card::new(Rank::Two, Suit::Diamonds),
-        ];
-        Hand { deck }
+    pub fn with_players(&self, n: usize) -> Self {
+        // TODO
+        // if n < 1 {
+        //     return Err(Error::ParseError);
+        // }
+        let mut players = [None, None, None, None, None, None, None, None, None];
+
+        let mut offset = 0;
+        for i in 0..n {
+            players[i] = Some(Holding::new(&self.deck.cards[offset..offset + 2]).unwrap());
+            offset += 2;
+        }
+
+        Hand {
+            deck: self.deck,
+            players,
+            n_players: n,
+        }
+    }
+
+    pub fn get_player(&self, n: usize) -> &Option<Holding> {
+        // TODO
+        // if n < 1 {
+        //     return Err(Error::ParseError);
+        // }
+        &self.players[n - 1]
+    }
+
+    pub fn flop(&self) -> &[Card] {
+        let idx = self.n_players * 2;
+        &self.deck.cards[idx..idx + 3]
+    }
+
+    pub fn turn(&self) -> &[Card] {
+        let idx = self.n_players * 2 + 4;
+        &self.deck.cards[idx..idx + 1]
+    }
+
+    pub fn river(&self) -> &[Card] {
+        let idx = self.n_players * 2 + 6;
+        &self.deck.cards[idx..idx + 1]
     }
 }
 
@@ -139,30 +67,61 @@ mod tests {
     use super::*;
 
     #[test]
-    fn len() {
-        assert_eq!(Hand::new().deck.len(), 52);
+    fn new() {
+        // using the unshuffled default Deck
+        let deck = Deck::default();
+        let hand = Hand::new(&deck);
+
+        assert_eq!(hand.deck.cards.len(), 52);
+        assert_eq!(
+            hand.players,
+            [None, None, None, None, None, None, None, None, None]
+        );
+        assert_eq!(hand.n_players, 0);
     }
 
     #[test]
-    fn default() {
-        let hand1 = Hand::default();
-        let hand2 = Hand::default();
-        let holding = Holding::new(&hand1.deck[..2]).unwrap();
-        let other = Holding::new(&hand2.deck[..2]).unwrap();
-        assert_eq!(holding, other);
+    fn with_players() {
+        let deck = Deck::new();
+        let hand = Hand::new(&deck).with_players(2);
+
+        assert_eq!(hand.n_players, 2);
+        assert_eq!(hand.deck.cards.len(), 52);
+
+        assert_eq!(
+            hand.players[0],
+            Some(Holding::new(&deck.cards[..2]).unwrap())
+        );
+
+        assert_eq!(
+            hand.players[1],
+            Some(Holding::new(&deck.cards[2..4]).unwrap())
+        );
     }
 
     #[test]
-    fn shuffle() {
-        let hand1 = Hand::new();
-        let hand2 = Hand::new();
-        let holding = Holding::new(&hand1.deck[..2]).unwrap();
-        let other = Holding::new(&hand2.deck[..2]).unwrap();
-        assert_ne!(holding, other);
+    fn flop() {
+        let deck = Deck::new();
+        let hand = Hand::new(&deck).with_players(2);
+        assert_eq!(hand.flop(), &hand.deck.cards[4..7]);
+    }
+
+    #[test]
+    fn turn() {
+        let deck = Deck::new();
+        let hand = Hand::new(&deck).with_players(2);
+        assert_eq!(hand.turn(), &hand.deck.cards[8..9]);
+    }
+
+    #[test]
+    fn river() {
+        let deck = Deck::default();
+        let hand = Hand::new(&deck).with_players(2);
+        assert_eq!(hand.river(), &hand.deck.cards[10..11]);
     }
 
     #[test]
     fn mem() {
-        assert_eq!(std::mem::size_of::<Hand>(), 104);
+        assert_eq!(std::mem::size_of::<Hand>(), 160);
     }
 }
