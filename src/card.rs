@@ -355,18 +355,18 @@ mod tests {
     #[test]
     fn ranks() {
         // Ranks
-        assert!(Rank::Ace > Rank::King);
-        assert!(Rank::King > Rank::Queen);
-        assert!(Rank::Queen > Rank::Jack);
-        assert!(Rank::Jack > Rank::Ten);
-        assert!(Rank::Ten > Rank::Nine);
-        assert!(Rank::Nine > Rank::Eight);
-        assert!(Rank::Eight > Rank::Seven);
-        assert!(Rank::Seven > Rank::Six);
-        assert!(Rank::Six > Rank::Five);
-        assert!(Rank::Five > Rank::Four);
-        assert!(Rank::Four > Rank::Three);
-        assert!(Rank::Three > Rank::Two);
+        assert_eq!(Rank::Ace > Rank::King ,true);
+        assert_eq!(Rank::King > Rank::Queen ,true);
+        assert_eq!(Rank::Queen > Rank::Jack ,true);
+        assert_eq!(Rank::Jack > Rank::Ten ,true);
+        assert_eq!(Rank::Ten > Rank::Nine ,true);
+        assert_eq!(Rank::Nine > Rank::Eight ,true);
+        assert_eq!(Rank::Eight > Rank::Seven ,true);
+        assert_eq!(Rank::Seven > Rank::Six ,true);
+        assert_eq!(Rank::Six > Rank::Five ,true);
+        assert_eq!(Rank::Five > Rank::Four ,true);
+        assert_eq!(Rank::Four > Rank::Three ,true);
+        assert_eq!(Rank::Three > Rank::Two ,true);
     }
 
     #[test]
@@ -395,7 +395,7 @@ mod tests {
     }
 
     #[test]
-    fn splits() {
+    fn pairs() {
         assert_eq!(
             Card::new(Rank::Ace, Suit::Clubs).pairs(&Card::new(Rank::Ace, Suit::Spades)),
             true
@@ -434,36 +434,21 @@ mod tests {
 
     #[test]
     fn partial_eq() {
-        assert_eq!(
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs)
-        );
-        assert_eq!(
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades)
-        );
-        assert_eq!(
-            Card::new(Rank::Ace, Suit::Hearts),
-            Card::new(Rank::Ace, Suit::Hearts)
-        );
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) == Card::new(Rank::Ace, Suit::Clubs), true);
+        assert_eq!(Card::new(Rank::King, Suit::Spades) == Card::new(Rank::King, Suit::Spades), true);
+        assert_eq!(Card::new(Rank::Ace, Suit::Hearts) == Card::new(Rank::Ace, Suit::Hearts), true);
 
-        assert_ne!(
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Diamonds)
-        );
-        assert_ne!(
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Diamonds)
-        );
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) != Card::new(Rank::Ace, Suit::Diamonds), true);
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) != Card::new(Rank::King, Suit::Diamonds), true);
     }
 
     #[test]
     fn partial_ord() {
-        assert!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Clubs));
-        assert!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Spades));
-        assert!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Hearts));
-        assert!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Diamonds));
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Clubs) ,true);
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Spades) ,true);
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Hearts) ,true);
+        assert_eq!(Card::new(Rank::Ace, Suit::Clubs) > Card::new(Rank::King, Suit::Diamonds) ,true);
 
-        assert!(Card::new(Rank::King, Suit::Diamonds) < Card::new(Rank::Ace, Suit::Clubs));
+        assert_eq!(Card::new(Rank::King, Suit::Diamonds) < Card::new(Rank::Ace, Suit::Clubs) ,true);
     }
 }
