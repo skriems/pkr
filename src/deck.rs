@@ -8,7 +8,6 @@ use rand::seq::SliceRandom;
 /// A Deck of Cards
 pub struct Deck {
     pub cards: [Card; 52],
-    rng: ThreadRng,
 }
 
 impl Deck {
@@ -70,7 +69,7 @@ impl Deck {
 
         let mut rng = ThreadRng::default();
         cards.shuffle(&mut rng);
-        Deck { cards, rng }
+        Deck { cards }
     }
 
     pub fn get_holding(&mut self) -> Result<Holding> {
