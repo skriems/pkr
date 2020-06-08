@@ -48,10 +48,19 @@ impl<'a> Holding<'a> {
         self.cards[0].suit == self.cards[1].suit
     }
 
+    /// two cards are connected when the product of the difference of their respective
+    /// enum discriminants is 1:
+    ///
+    /// connected:
+    ///     Rank::Ace(12) - Rank::King(11) == 1
+    ///     Rank::King(11) - Rank::Ace(12) == -1    <- hence product is needed
+    ///
+    /// not connected:
+    ///     Rank::Ace(12) - Rank::Queen(10) == 2
+    ///     Rank::Queen(10) - Rank::Ace(12) == -2
     pub fn is_connected(&self) -> bool {
-        let discriminant_1 = self.cards[0].rank as u32;
-        let discriminant_2 = self.cards[1].rank as u32;
-        (discriminant_1 - discriminant_2) * (discriminant_1 - discriminant_2) == 1
+        let res = self.cards[0].rank as u32 - self.cards[1].rank as u32;
+        res * res == 1
     }
 
     // pub fn from(expr: &'a str) -> Result<Self> {
@@ -634,17 +643,65 @@ mod tests {
 
     #[test]
     fn is_suited() {
-        assert!(false);
+        // AK
+        let cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+        let holding = Holding::new(&cards).unwrap();
+
+        assert_eq!(holding.is_suited(), true);
+
+        // AK
+        let cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Clubs),
+        ];
+        let holding = Holding::new(&cards).unwrap();
+
+        assert_eq!(holding.is_suited(), false);
     }
 
     #[test]
     fn is_connected() {
-        assert!(false);
+        // AK
+        let cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+        let holding = Holding::new(&cards).unwrap();
+
+        assert_eq!(holding.is_connected(), true);
+
+        // AQ
+        let cards = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::Queen, Suit::Spades),
+        ];
+
+        let holding = Holding::new(&cards).unwrap();
+        assert_eq!(holding.is_connected(), false);
     }
 
     #[test]
     fn is_pocket_pair() {
-        assert!(false);
+        // AA
+        let cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::Ace, Suit::Clubs),
+        ];
+        let holding = Holding::new(&cards).unwrap();
+
+        assert_eq!(holding.is_pocket_pair(), true);
+
+        // AK
+        let cards = [
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Spades),
+        ];
+        let holding = Holding::new(&cards).unwrap();
+
+        assert_eq!(holding.is_pocket_pair(), false);
     }
 
     // #[test]
