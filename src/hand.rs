@@ -5,12 +5,13 @@ use crate::holding::*;
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 
-/// A Deck of Cards
-pub struct Deck {
-    pub cards: [Card; 52],
+
+/// A Hand is dealt for N players and starts with a shuffled deck of cards.
+pub struct Hand {
+    pub deck: [Card; 52],
 }
 
-impl Deck {
+impl Hand {
     pub fn new() -> Self {
         let mut cards: [Card; 52] = [
             Card::new(Rank::Ace, Suit::Clubs),
@@ -69,11 +70,11 @@ impl Deck {
 
         let mut rng = ThreadRng::default();
         cards.shuffle(&mut rng);
-        Deck { cards }
+        Hand { deck: cards }
     }
 
     pub fn get_holding(&mut self) -> Result<Holding> {
-        Holding::new(&self.cards[..2])
+        Holding::new(&self.deck[..2])
     }
 }
 
@@ -83,20 +84,20 @@ mod tests {
 
     #[test]
     fn len() {
-        assert_eq!(Deck::new().cards.len(), 52);
+        assert_eq!(Hand::new().deck.len(), 52);
     }
 
     #[test]
     fn shuffle() {
-        let mut deck1 = Deck::new();
-        let mut deck2 = Deck::new();
-        let holding = deck1.get_holding().unwrap();
-        let other = deck2.get_holding().unwrap();
+        let mut hand1 = Hand::new();
+        let mut hand2 = Hand::new();
+        let holding = hand1.get_holding().unwrap();
+        let other = hand2.get_holding().unwrap();
         assert_ne!(holding, other);
     }
 
     #[test]
     fn mem() {
-        assert_eq!(std::mem::size_of::<Deck>(), 104);
+        assert_eq!(std::mem::size_of::<Hand>(), 104);
     }
 }
