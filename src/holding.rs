@@ -151,38 +151,6 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq() {
-        // Aces
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("As").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-
-        let first = Holding::new(&first_cards).unwrap();
-        let second = Holding::new(&second_cards).unwrap();
-
-        assert_eq!(first, second);
-
-        // AK's
-        let first_cards = [
-            Card::from("Ah").unwrap(),
-            Card::from("Kd").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("Ah").unwrap(),
-        ];
-        let first = Holding::new(&first_cards).unwrap();
-        let second = Holding::new(&second_cards).unwrap();
-
-        assert_eq!(first, second);
-    }
-
-    #[test]
     fn high_card() {
         // AK -> &A
         let first_cards = [
@@ -564,6 +532,38 @@ mod tests {
     }
 
     #[test]
+    fn partial_eq() {
+        // Aces
+        let first_cards = [
+            Card::from("Ac").unwrap(),
+            Card::from("As").unwrap(),
+        ];
+        let second_cards = [
+            Card::from("As").unwrap(),
+            Card::from("Ac").unwrap(),
+        ];
+
+        let first = Holding::new(&first_cards).unwrap();
+        let second = Holding::new(&second_cards).unwrap();
+
+        assert_eq!(first, second);
+
+        // AK's
+        let first_cards = [
+            Card::from("Ah").unwrap(),
+            Card::from("Kd").unwrap(),
+        ];
+        let second_cards = [
+            Card::from("Kd").unwrap(),
+            Card::from("Ah").unwrap(),
+        ];
+        let first = Holding::new(&first_cards).unwrap();
+        let second = Holding::new(&second_cards).unwrap();
+
+        assert_eq!(first, second);
+    }
+
+    #[test]
     fn partial_ne() {
         // AK vs AQ
         let first_cards = [
@@ -572,7 +572,7 @@ mod tests {
         ];
         let second_cards = [
             Card::from("Ac").unwrap(),
-            Card::from("Kd").unwrap(),
+            Card::from("Qd").unwrap(),
         ];
 
         let first = Holding::new(&first_cards).unwrap();
@@ -686,6 +686,19 @@ mod tests {
         let holding = Holding::new(&cards).unwrap();
 
         assert_eq!(holding.is_pocket_pair(), false);
+    }
+
+    #[test]
+    fn contains() {
+        // AA
+        let cards = [
+            Card::from("As").unwrap(),
+            Card::from("Ac").unwrap(),
+        ];
+        let card = Card::from("Ad").unwrap();
+
+        let holding = Holding::new(&cards).unwrap();
+        assert_eq!(holding.cards.contains(&card), true);
     }
 
     #[test]
