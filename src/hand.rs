@@ -18,7 +18,7 @@ impl<'a> Hand<'a> {
         }
     }
 
-    pub fn with_players(&self, n: usize) -> Self {
+    pub fn deal(&self, n: usize) -> Self {
         // TODO
         // if n < 1 {
         //     return Err(Error::ParseError);
@@ -81,9 +81,9 @@ mod tests {
     }
 
     #[test]
-    fn with_players() {
+    fn deal() {
         let deck = Deck::new();
-        let hand = Hand::new(&deck).with_players(2);
+        let hand = Hand::new(&deck).deal(2);
 
         assert_eq!(hand.n_players, 2);
         assert_eq!(hand.deck.cards.len(), 52);
@@ -102,21 +102,21 @@ mod tests {
     #[test]
     fn flop() {
         let deck = Deck::new();
-        let hand = Hand::new(&deck).with_players(2);
+        let hand = Hand::new(&deck).deal(2);
         assert_eq!(hand.flop(), &hand.deck.cards[4..7]);
     }
 
     #[test]
     fn turn() {
         let deck = Deck::new();
-        let hand = Hand::new(&deck).with_players(2);
+        let hand = Hand::new(&deck).deal(2);
         assert_eq!(hand.turn(), &hand.deck.cards[8..9]);
     }
 
     #[test]
     fn river() {
         let deck = Deck::default();
-        let hand = Hand::new(&deck).with_players(2);
+        let hand = Hand::new(&deck).deal(2);
         assert_eq!(hand.river(), &hand.deck.cards[10..11]);
     }
 

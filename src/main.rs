@@ -3,7 +3,7 @@ use pkr::prelude::*;
 fn main() {
     for _ in 0..10 {
         let deck = Deck::new();
-        let hand = Hand::new(&deck).with_players(2);
+        let hand = Hand::new(&deck).deal(2);
         let hero = hand.get_player(1).as_ref().unwrap();
         let vilan = hand.get_player(2).as_ref().unwrap();
 
