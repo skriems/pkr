@@ -1,6 +1,7 @@
 use crate::card::*;
 use crate::error::{Error, Result};
 use crate::Beats;
+use std::fmt;
 
 /// A Players Holding Cards
 #[derive(Debug, PartialOrd)]
@@ -121,6 +122,12 @@ impl<'a> PartialEq for Holding<'a> {
             || self.cards[0] == other.cards[1] && self.cards[1] == other.cards[0]
             || self.cards[1] == other.cards[0] && self.cards[0] == other.cards[1]
             || self.cards[1] == other.cards[1] && self.cards[0] == other.cards[0]
+    }
+}
+
+impl<'a> fmt::Display for Holding<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{} {}]", self.high_card(), self.low_card())
     }
 }
 
