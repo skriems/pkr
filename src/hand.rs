@@ -6,7 +6,7 @@ use crate::holding::*;
 pub struct Hand<'a> {
     pub deck: &'a Deck,
     players: [Option<Holding<'a>>; 9],
-    n_players: usize,
+    seats: usize,
 }
 
 impl<'a> Hand<'a> {
@@ -14,7 +14,7 @@ impl<'a> Hand<'a> {
         Hand {
             deck,
             players: [None, None, None, None, None, None, None, None, None],
-            n_players: 0,
+            seats: 0,
         }
     }
 
@@ -34,7 +34,7 @@ impl<'a> Hand<'a> {
         Hand {
             deck: self.deck,
             players,
-            n_players: n,
+            seats: n,
         }
     }
 
@@ -47,17 +47,17 @@ impl<'a> Hand<'a> {
     }
 
     pub fn flop(&self) -> &[Card] {
-        let idx = self.n_players * 2;
+        let idx = self.seats * 2;
         &self.deck.cards[idx..idx + 3]
     }
 
     pub fn turn(&self) -> &[Card] {
-        let idx = self.n_players * 2 + 4;
+        let idx = self.seats * 2 + 4;
         &self.deck.cards[idx..idx + 1]
     }
 
     pub fn river(&self) -> &[Card] {
-        let idx = self.n_players * 2 + 6;
+        let idx = self.seats * 2 + 6;
         &self.deck.cards[idx..idx + 1]
     }
 }
@@ -77,7 +77,7 @@ mod tests {
             hand.players,
             [None, None, None, None, None, None, None, None, None]
         );
-        assert_eq!(hand.n_players, 0);
+        assert_eq!(hand.seats, 0);
     }
 
     #[test]
@@ -85,7 +85,7 @@ mod tests {
         let deck = Deck::new();
         let hand = Hand::new(&deck).deal(2);
 
-        assert_eq!(hand.n_players, 2);
+        assert_eq!(hand.seats, 2);
         assert_eq!(hand.deck.cards.len(), 52);
 
         assert_eq!(
