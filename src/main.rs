@@ -12,16 +12,16 @@ fn main() {
         let river = hand.river();
 
         println!(
-            "[{}{}] vs. [{}{}] | {}{}{} | {} | {}",
+            "[{} {}] vs. [{} {}] | {} {} {} | {} | {}",
             hero.high_card(),
             hero.low_card(),
             vilan.high_card(),
             vilan.low_card(),
-            flop[0],
-            flop[1],
-            flop[2],
-            turn[0],
-            river[0]
+            flop.cards[0],
+            flop.cards[1],
+            flop.cards[2],
+            turn,
+            river
         );
     }
 }
