@@ -63,17 +63,6 @@ impl<'a> Holding<'a> {
         let res = self.cards[0].rank as u32 - self.cards[1].rank as u32;
         res * res == 1
     }
-
-    // pub fn from(expr: &'a str) -> Result<Self> {
-    //     if expr.len() != 4 {
-    //         return Err(Error::ParseError);
-    //     }
-
-    //     let first = Card::from(&expr[..2])?;
-    //     let second = Card::from(&expr[2..4])?;
-    //     let cards = [first, second];
-    //     Holding::new(cards)
-    // }
 }
 
 impl<'a> Beats for Holding<'a> {
@@ -160,18 +149,6 @@ mod tests {
         ];
         assert!(Holding::new(&cards).is_err());
     }
-
-    // #[test]
-    // fn from_expr() {
-    //     // different Rank, suited
-    //     assert!(Holding::from("AsKs").is_ok());
-    //     // same cards
-    //     assert!(Holding::from("AsAs").is_err());
-    //     // same Rank, different Suit
-    //     assert!(Holding::from("AsAd").is_ok());
-    //     // different Rank, different Suit
-    //     assert!(Holding::from("AsKc").is_ok());
-    // }
 
     #[test]
     fn partial_eq() {
