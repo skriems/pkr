@@ -128,24 +128,24 @@ mod tests {
     fn new() {
         // same Rank, different Suit
         let cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("As").unwrap(),
         ];
         assert!(Holding::new(&cards).is_ok());
         assert_eq!(Holding::new(&cards).unwrap(), Holding { cards: &cards });
 
         // different Rank, suited
         let cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         assert!(Holding::new(&cards).is_ok());
         assert_eq!(Holding::new(&cards).unwrap(), Holding { cards: &cards });
 
         // same Rank, suited
         let cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         assert!(Holding::new(&cards).is_err());
     }
@@ -154,12 +154,12 @@ mod tests {
     fn partial_eq() {
         // Aces
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("As").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("As").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
 
         let first = Holding::new(&first_cards).unwrap();
@@ -169,12 +169,12 @@ mod tests {
 
         // AK's
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Hearts),
-            Card::new(Rank::King, Suit::Diamonds),
+            Card::from("Ah").unwrap(),
+            Card::from("Kd").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Diamonds),
-            Card::new(Rank::Ace, Suit::Hearts),
+            Card::from("Kd").unwrap(),
+            Card::from("Ah").unwrap(),
         ];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
@@ -186,34 +186,34 @@ mod tests {
     fn high_card() {
         // AK -> &A
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let holding = Holding::new(&first_cards).unwrap();
-        assert_eq!(holding.high_card(), &Card::new(Rank::Ace, Suit::Clubs));
+        assert_eq!(holding.high_card(), &Card::from("Ac").unwrap());
     }
 
     #[test]
     fn low_card() {
         // AK -> &K
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let holding = Holding::new(&first_cards).unwrap();
-        assert_eq!(holding.low_card(), &Card::new(Rank::King, Suit::Clubs));
+        assert_eq!(holding.low_card(), &Card::from("Kc").unwrap());
     }
 
     #[test]
     fn beats() {
         // two overcards: AK vs QJ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Queen, Suit::Spades),
-            Card::new(Rank::Jack, Suit::Spades),
+            Card::from("Qs").unwrap(),
+            Card::from("Js").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -222,12 +222,12 @@ mod tests {
 
         // two overcards: KA vs QJ
         let first_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Kc").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Queen, Suit::Spades),
-            Card::new(Rank::Jack, Suit::Spades),
+            Card::from("Qs").unwrap(),
+            Card::from("Js").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -236,12 +236,12 @@ mod tests {
 
         // two overcards: AK vs JQ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Jack, Suit::Spades),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("Js").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -250,12 +250,12 @@ mod tests {
 
         // better kicker: AK vs AQ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -264,12 +264,12 @@ mod tests {
 
         // better kicker: KA vs AQ
         let first_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Kc").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -278,12 +278,12 @@ mod tests {
 
         // better kicker: AK vs QA
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Queen, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Qs").unwrap(),
+            Card::from("As").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -292,12 +292,12 @@ mod tests {
 
         // better kicker: KA vs QA
         let first_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Kc").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Queen, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Qs").unwrap(),
+            Card::from("As").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -306,12 +306,12 @@ mod tests {
 
         // AK vs AK
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Diamonds),
+            Card::from("As").unwrap(),
+            Card::from("Kd").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -320,12 +320,12 @@ mod tests {
 
         // KA vs AK
         let first_cards = [
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Ks").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Diamonds),
+            Card::from("As").unwrap(),
+            Card::from("Kd").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -334,12 +334,12 @@ mod tests {
 
         // AK vs KA
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Diamonds),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Kd").unwrap(),
+            Card::from("As").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -348,12 +348,12 @@ mod tests {
 
         // KA vs KA
         let first_cards = [
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Ks").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Diamonds),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Kd").unwrap(),
+            Card::from("As").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -362,12 +362,12 @@ mod tests {
 
         // AJ vs KQ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Jack, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Js").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Diamonds),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("Kd").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -376,12 +376,12 @@ mod tests {
 
         // J7 vs T8
         let first_cards = [
-            Card::new(Rank::Jack, Suit::Spades),
-            Card::new(Rank::Seven, Suit::Clubs),
+            Card::from("Js").unwrap(),
+            Card::from("7c").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ten, Suit::Diamonds),
-            Card::new(Rank::Eight, Suit::Spades),
+            Card::from("Td").unwrap(),
+            Card::from("8s").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -390,12 +390,12 @@ mod tests {
 
         // 55 vs AK
         let first_cards = [
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Five, Suit::Clubs),
+            Card::from("5s").unwrap(),
+            Card::from("5c").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Diamonds),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ad").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -404,12 +404,12 @@ mod tests {
 
         // 55 vs 44
         let first_cards = [
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Five, Suit::Clubs),
+            Card::from("5s").unwrap(),
+            Card::from("5c").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Four, Suit::Diamonds),
-            Card::new(Rank::Four, Suit::Spades),
+            Card::from("4d").unwrap(),
+            Card::from("4s").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -418,12 +418,12 @@ mod tests {
 
         // 55 vs 55
         let first_cards = [
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Five, Suit::Clubs),
+            Card::from("5s").unwrap(),
+            Card::from("5c").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Five, Suit::Diamonds),
-            Card::new(Rank::Five, Suit::Spades),
+            Card::from("5d").unwrap(),
+            Card::from("5s").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -432,12 +432,12 @@ mod tests {
 
         // AK vs 55
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("As").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Five, Suit::Diamonds),
-            Card::new(Rank::Five, Suit::Spades),
+            Card::from("5d").unwrap(),
+            Card::from("5s").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -449,12 +449,12 @@ mod tests {
     fn pairs() {
         // AK vs AK
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -463,12 +463,12 @@ mod tests {
 
         // KA vs AK
         let first_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Kc").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -477,12 +477,12 @@ mod tests {
 
         // AK vs KA
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Ks").unwrap(),
+            Card::from("As").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -491,12 +491,12 @@ mod tests {
 
         // KA vs KA
         let first_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("Kc").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Ks").unwrap(),
+            Card::from("As").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -505,12 +505,12 @@ mod tests {
 
         // AK vs AQ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("Ac").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -519,12 +519,12 @@ mod tests {
 
         // 87 vs 87
         let first_cards = [
-            Card::new(Rank::Eight, Suit::Clubs),
-            Card::new(Rank::Seven, Suit::Clubs),
+            Card::from("8c").unwrap(),
+            Card::from("7c").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Eight, Suit::Spades),
-            Card::new(Rank::Seven, Suit::Spades),
+            Card::from("8s").unwrap(),
+            Card::from("7s").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -533,12 +533,12 @@ mod tests {
 
         // 55 vs 55
         let first_cards = [
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Five, Suit::Clubs),
+            Card::from("5s").unwrap(),
+            Card::from("5c").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Four, Suit::Diamonds),
-            Card::new(Rank::Four, Suit::Spades),
+            Card::from("4d").unwrap(),
+            Card::from("4s").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -550,12 +550,12 @@ mod tests {
     fn looses() {
         // 44 vs 55
         let first_cards = [
-            Card::new(Rank::Four, Suit::Diamonds),
-            Card::new(Rank::Four, Suit::Spades),
+            Card::from("4d").unwrap(),
+            Card::from("4s").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Five, Suit::Spades),
-            Card::new(Rank::Five, Suit::Clubs),
+            Card::from("5s").unwrap(),
+            Card::from("5c").unwrap(),
         ];
 
         let holding = Holding::new(&first_cards).unwrap();
@@ -567,12 +567,12 @@ mod tests {
     fn partial_ne() {
         // AK vs AQ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Diamonds),
+            Card::from("Ac").unwrap(),
+            Card::from("Kd").unwrap(),
         ];
 
         let first = Holding::new(&first_cards).unwrap();
@@ -584,12 +584,12 @@ mod tests {
     fn partial_ord() {
         // Aces vs Kings
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Ace, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("As").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::King, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Kc").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
@@ -598,12 +598,12 @@ mod tests {
 
         // AK vs AQ
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
@@ -612,12 +612,12 @@ mod tests {
 
         // AQ vs AK
         let first_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
         let second_cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
@@ -629,8 +629,8 @@ mod tests {
     fn is_suited() {
         // AK
         let cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let holding = Holding::new(&cards).unwrap();
 
@@ -638,8 +638,8 @@ mod tests {
 
         // AK
         let cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Clubs),
+            Card::from("As").unwrap(),
+            Card::from("Kc").unwrap(),
         ];
         let holding = Holding::new(&cards).unwrap();
 
@@ -650,8 +650,8 @@ mod tests {
     fn is_connected() {
         // AK
         let cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let holding = Holding::new(&cards).unwrap();
 
@@ -659,8 +659,8 @@ mod tests {
 
         // AQ
         let cards = [
-            Card::new(Rank::Ace, Suit::Clubs),
-            Card::new(Rank::Queen, Suit::Spades),
+            Card::from("Ac").unwrap(),
+            Card::from("Qs").unwrap(),
         ];
 
         let holding = Holding::new(&cards).unwrap();
@@ -671,8 +671,8 @@ mod tests {
     fn is_pocket_pair() {
         // AA
         let cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::Ace, Suit::Clubs),
+            Card::from("As").unwrap(),
+            Card::from("Ac").unwrap(),
         ];
         let holding = Holding::new(&cards).unwrap();
 
@@ -680,8 +680,8 @@ mod tests {
 
         // AK
         let cards = [
-            Card::new(Rank::Ace, Suit::Spades),
-            Card::new(Rank::King, Suit::Spades),
+            Card::from("As").unwrap(),
+            Card::from("Ks").unwrap(),
         ];
         let holding = Holding::new(&cards).unwrap();
 
