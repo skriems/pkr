@@ -88,16 +88,79 @@ impl<'a> Hand<'a> {
         Flop::new(&self.deck.cards[idx..idx + 3])
     }
 
-    /// returns the turn as `&Card`
+    /// returns the turn card as `&Card`
     pub fn turn(&self) -> &Card {
         let idx = self.seats * 2 + 4;
         &self.deck.cards[idx..idx + 1][0]
     }
 
-    /// returns the river as `&Card`
+    /// returns the river card as `&Card`
     pub fn river(&self) -> &Card {
         let idx = self.seats * 2 + 6;
         &self.deck.cards[idx..idx + 1][0]
+    }
+}
+
+#[derive(Debug)]
+pub enum HandRank {
+    HighCard(Rank),         // HighCard
+    Pair(Rank),             // HighCard
+    TwoPair(Rank, Rank),    // Higher Lower
+    ThreeOfAKind(Rank),     // HighCard
+    Straight(Rank),         // HighCard
+    Flush(Rank),            // HighCard
+    FullHouse(Rank, Rank),  // Higher Lower
+    FourOfAKind(Rank),      // HighCard
+    StraightFlush(Rank),    // HighCard
+    RoyalFlush(Rank),       // HighCard
+}
+
+/// The HandResult takes a players `Holding` hand, a `Flop`, turn and river card and determines the
+/// Hand rank
+#[derive(Debug)]
+pub struct HandResult<'a> {
+    holding: &'a Holding<'a>,
+    flop: Option<&'a Flop<'a>>,
+    turn: Option<&'a Card>,
+    river: Option<&'a Card>,
+    pub hits: [u8; 2]
+}
+
+impl<'a> HandResult<'a> {
+    pub fn new(holding: &'a Holding, flop: Option<&'a Flop>, turn: Option<&'a Card>, river: Option<&'a Card>) -> Self {
+        let mut hits: [u8; 2] = [0, 0];
+
+        if let Some(flop) = flop {
+            for card in flop.cards {
+                if card.rank == holding.cards[0].rank {
+                    hits[0] += 1;
+                }
+                if card.rank == holding.cards[1].rank {
+                    hits[1] += 1;
+                }
+            }
+
+        }
+
+        if let Some(turn) = turn {
+            if turn.rank == holding.cards[0].rank {
+                hits[0] += 1;
+            }
+            if turn.rank == holding.cards[1].rank {
+                hits[1] += 1;
+            }
+        }
+
+        if let Some(river) = river {
+            if river.rank == holding.cards[0].rank {
+                hits[0] += 1;
+            }
+            if river.rank == holding.cards[1].rank {
+                hits[1] += 1;
+            }
+        }
+
+        HandResult { holding, flop, turn, river, hits }
     }
 }
 
@@ -170,8 +233,34 @@ mod tests {
     }
 
     #[test]
+    fn hand_result() {
+        // default unshuffled deck
+        let deck = Deck::default();
+
+        // player1 gets AKc
+        let hand = Hand::new(&deck).deal(1);
+        let holding = hand.get_player(1).as_ref().unwrap();
+
+        let expected_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        assert_eq!(holding, &Holding::new(&expected_cards).unwrap());
+
+        // taking the flop from the default deck
+        let flop = hand.flop();
+
+        // lets test two pair, or two hits
+        let turn = Card::from("As").unwrap();
+        let river = Card::from("Ks").unwrap();
+
+        let result = HandResult::new(&holding, Some(&flop), Some(&turn), Some(&river));
+        assert_eq!(result.hits, [1,1])
+    }
+
+    #[test]
     fn mem() {
         assert_eq!(std::mem::size_of::<Hand>(), 160);
         assert_eq!(std::mem::size_of::<Flop>(), 48);
+        assert_eq!(std::mem::size_of::<HandRank>(), 3);
+        assert_eq!(std::mem::size_of::<HandResult>(), 40);
     }
+
 }

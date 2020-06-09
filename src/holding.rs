@@ -6,7 +6,7 @@ use std::fmt;
 /// A Players Holding Cards
 #[derive(Debug, PartialOrd)]
 pub struct Holding<'a> {
-    cards: &'a [Card],
+    pub cards: &'a [Card],
 }
 
 impl<'a> Holding<'a> {
