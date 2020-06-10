@@ -5,6 +5,7 @@ pub mod hand;
 pub mod holding;
 pub mod prelude;
 pub mod range;
+pub mod result;
 
 /// A trait to determine wheter Self beats, splits or looses against another
 pub trait Beats<Rhs: ?Sized = Self> {
