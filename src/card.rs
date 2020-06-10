@@ -75,6 +75,27 @@ impl Card {
     }
 }
 
+impl From<usize> for Rank {
+    fn from(n: usize) -> Self {
+        match n {
+            0 => Rank::Two,
+            1 => Rank::Three,
+            2 => Rank::Four,
+            3 => Rank::Five,
+            4 => Rank::Six,
+            5 => Rank::Seven,
+            6 => Rank::Eight,
+            7 => Rank::Nine,
+            8 => Rank::Ten,
+            9 => Rank::Jack,
+            10 => Rank::Queen,
+            11 => Rank::King,
+            12 => Rank::Ace,
+            _ => unreachable!()
+        }
+    }
+}
+
 /// Determine the rank equality for a Card despite its Suit
 impl PartialEq for Card {
     fn eq(&self, other: &Self) -> bool {

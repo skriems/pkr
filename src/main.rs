@@ -4,69 +4,71 @@ fn main() {
 
     for _ in 0..100 {
         let deck = Deck::new();
-        let hand = Hand::new(&deck).deal(2);
+        let mut hand = Hand::new(&deck, 2);
+        let board = hand.board.full();
+
         let hero = hand.get_player(1).as_ref().unwrap();
         let vilan = hand.get_player(2).as_ref().unwrap();
 
-        let flop = hand.flop();
-        let turn = hand.turn();
-        let river = hand.river();
+        let flop = board.flop();
+        let turn = board.turn();
+        let river = board.river();
 
-        let res1 = HandResult::new(hero, Some(&flop), Some(&turn), Some(&river));
-        let res2 = HandResult::new(vilan, Some(&flop), Some(&turn), Some(&river));
+        let rank1 = HandResult::new(hero, &board).rank();
+        let rank2 = HandResult::new(vilan, &board).rank();
 
-        if res1.rank > res2.rank {
+        if rank1 > rank2 {
             println!(
                 "{}, {} | {} {} {} | {} | {}\t{} wins with {:?}",
                 hero,
                 vilan,
-                flop.cards[0],
-                flop.cards[1],
-                flop.cards[2],
+                flop[0],
+                flop[1],
+                flop[2],
                 turn,
                 river,
                 hero,
-                res1.rank
+                rank1
             );
-        } else if res2.rank > res1.rank {
+        } else if rank2 > rank1 {
             println!(
                 "{}, {} | {} {} {} | {} | {}\t{} wins with {:?}",
                 hero,
                 vilan,
-                flop.cards[0],
-                flop.cards[1],
-                flop.cards[2],
+                flop[0],
+                flop[1],
+                flop[2],
                 turn,
                 river,
                 vilan,
-                res2.rank
+                rank2 
             );
-        } else if res1.rank == HandRank::HighCard && res2.rank == HandRank::HighCard {
+        } else if rank1 == HandRank::HighCard && rank2 == HandRank::HighCard {
             if hero.beats(vilan) {
                 println!(
                     "{}, {} | {} {} {} | {} | {}\t{} wins with {:?}",
                     hero,
                     vilan,
-                    flop.cards[0],
-                    flop.cards[1],
-                    flop.cards[2],
+                    flop[0],
+                    flop[1],
+                    flop[2],
                     turn,
                     river,
                     hero,
-                    res1.rank
+                    rank1,
                 );
             } else if vilan.beats(hero) {
                 println!(
                     "{}, {} | {} {} {} | {} | {}\t{} wins with {:?}",
                     hero,
                     vilan,
-                    flop.cards[0],
-                    flop.cards[1],
-                    flop.cards[2],
+                    flop[0],
+                    flop[1],
+                    flop[2],
                     turn,
                     river,
                     vilan,
-                    res2.rank
+                    rank2
                 );
             }
         } else {
@@ -74,9 +76,9 @@ fn main() {
                 "{}, {} | {} {} {} | {} | {}",
                 hero,
                 vilan,
-                flop.cards[0],
-                flop.cards[1],
-                flop.cards[2],
+                flop[0],
+                flop[1],
+                flop[2],
                 turn,
                 river
             );

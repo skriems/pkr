@@ -1,3 +1,4 @@
+pub use crate::board::*;
 pub use crate::card::*;
 pub use crate::deck::*;
 pub use crate::hand::*;
