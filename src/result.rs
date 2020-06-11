@@ -239,9 +239,7 @@ mod tests {
     //         Card::from("7c").unwrap(),
     //         Card::from("2s").unwrap(),
     //         Card::from("Kd").unwrap(),
-    //         Card::from("3h").unwrap(), // skipped
     //         Card::from("5d").unwrap(),
-    //         Card::from("6s").unwrap(), // skipped
     //         Card::from("7c").unwrap(),
     //     ];
     //     let board = Board::new(&board_cards).full();
@@ -252,9 +250,7 @@ mod tests {
     //         Card::from("7c").unwrap(),
     //         Card::from("2s").unwrap(),
     //         Card::from("Ad").unwrap(),
-    //         Card::from("3h").unwrap(), // skipped
     //         Card::from("5d").unwrap(),
-    //         Card::from("6s").unwrap(), // skipped
     //         Card::from("7c").unwrap(),
     //     ];
     //     let board = Board::new(&board_cards).full();
@@ -272,9 +268,7 @@ mod tests {
             Card::from("Ah").unwrap(),
             Card::from("As").unwrap(),
             Card::from("Ad").unwrap(),
-            Card::from("3c").unwrap(), // skipped
             Card::from("Ac").unwrap(),
-            Card::from("2h").unwrap(), // skipped
             Card::from("Jh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
@@ -291,9 +285,7 @@ mod tests {
             Card::from("Ah").unwrap(),
             Card::from("As").unwrap(),
             Card::from("Kd").unwrap(),
-            Card::from("3c").unwrap(), // skipped
             Card::from("Ac").unwrap(),
-            Card::from("2h").unwrap(), // skipped
             Card::from("Kh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
@@ -310,9 +302,7 @@ mod tests {
             Card::from("Ah").unwrap(),
             Card::from("As").unwrap(),
             Card::from("Kd").unwrap(),
-            Card::from("3c").unwrap(), // skipped
             Card::from("7c").unwrap(),
-            Card::from("2h").unwrap(), // skipped
             Card::from("Jh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
@@ -333,9 +323,7 @@ mod tests {
             Card::from("Qd").unwrap(),
             Card::from("8c").unwrap(),
             Card::from("As").unwrap(),
-            Card::from("3c").unwrap(), // skipped
             Card::from("7h").unwrap(),
-            Card::from("8h").unwrap(), // skipped
             Card::from("7s").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
@@ -355,9 +343,7 @@ mod tests {
             Card::from("2h").unwrap(),
             Card::from("5d").unwrap(),
             Card::from("2c").unwrap(),
-            Card::from("3c").unwrap(), // skipped
             Card::from("Qh").unwrap(),
-            Card::from("8h").unwrap(), // skipped
             Card::from("5h").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
@@ -378,9 +364,7 @@ mod tests {
             Card::from("4d").unwrap(),
             Card::from("3s").unwrap(),
             Card::from("3d").unwrap(),
-            Card::from("8c").unwrap(), // skipped
             Card::from("6s").unwrap(),
-            Card::from("2h").unwrap(), // skipped
             Card::from("Kh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
@@ -389,6 +373,31 @@ mod tests {
         println!("{:#?}", board.ranks);
         println!("{:#?}", board.pairs());
         assert_eq!(result.rank(), HandRank::TwoPair);
+    }
+
+    #[test]
+    fn full_house_pockets_and_board_paired_on_river() {
+        // [K♣ 2♣], [8❤ 8♠] | 4❤ A♠ Q♣ | 8♦ | Q♦	[8❤ 8♠] wins with TwoPair
+        let holding_cards = [
+            Card::from("8h").unwrap(),
+            Card::from("8s").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("4h").unwrap(),
+            Card::from("As").unwrap(),
+            Card::from("Qc").unwrap(),
+            Card::from("8d").unwrap(),
+            Card::from("Qd").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board.texture());
+        println!("board.ranks: {:#?}", board.ranks);
+        println!("board.pairs: {:#?}", board.pairs());
+        println!("{:#?}", board.get_rank(3));
+        assert_eq!(result.rank(), HandRank::FullHouse);
     }
 
     #[test]

@@ -18,7 +18,9 @@ pub struct BoardTexture {
 }
 
 /// The `Board` takes a slice of Cards and stores the count of their `Rank` and `Suit` as u8
-/// arrays. We use the enums descriminators for indexing the arrays, so that we can infer them
+/// arrays. The enums descriminators are used for indexing those arrays to infer the `Rank`.
+/// Note that we do not skip a `Card` before dealing the Turn and River for easier `HandResult`
+/// evaluation.  The caller would need to do that.
 #[derive(Debug)]
 pub struct Board<'a> {
     /// Slice of Cards
@@ -26,7 +28,13 @@ pub struct Board<'a> {
     /// Array of 13 u8 for each respective `Rank`
     pub ranks: [usize; 13],
     /// Array of 4 u8 for each respective `Suit`
-    pub suits: [usize; 4]
+    pub suits: [usize; 4],
+    /// If the Flop has been dealt
+    pub flop_dealt: bool,
+    /// If the Turn card has been dealt
+    pub turn_dealt: bool,
+    /// If the River card has been dealt
+    pub river_dealt: bool,
 }
 
 impl<'a> Board<'a> {
@@ -34,7 +42,7 @@ impl<'a> Board<'a> {
     pub fn new(cards: &'a [Card]) -> Self {
         let ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let suits = [0, 0, 0, 0];
-        Board { cards, ranks, suits }
+        Board { cards, ranks, suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
     }
 
     /// Process the Flop
@@ -44,23 +52,23 @@ impl<'a> Board<'a> {
             self.ranks[card.rank as usize] += 1;
             self.suits[card.suit as usize] += 1;
         };
-        Board { cards: self.cards, ranks: self.ranks, suits: self.suits }
+        Board { cards: self.cards, ranks: self.ranks, suits: self.suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
     }
 
     /// Process the Turn
     pub fn with_turn(&mut self) -> Self {
-        let turn = &self.cards[4];
+        let turn = &self.cards[3];
         self.ranks[turn.rank as usize] += 1;
         self.suits[turn.suit as usize] += 1;
-        Board { cards: self.cards, ranks: self.ranks, suits: self.suits }
+        Board { cards: self.cards, ranks: self.ranks, suits: self.suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
     }
 
     /// Process the River
     pub fn with_river(&mut self) -> Self {
-        let river = &self.cards[6];
+        let river = &self.cards[4];
         self.ranks[river.rank as usize] += 1;
         self.suits[river.suit as usize] += 1;
-        Board { cards: self.cards, ranks: self.ranks, suits: self.suits }
+        Board { cards: self.cards, ranks: self.ranks, suits: self.suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
     }
 
     /// Process Flop, Turn and River
@@ -75,12 +83,17 @@ impl<'a> Board<'a> {
 
     /// Return the Turn `Card`
     pub fn turn(&self) -> &Card {
-        &self.cards[4]
+        &self.cards[3]
     }
 
     /// Return the River `Card`
     pub fn river(&self) -> &Card {
-        &self.cards[6]
+        &self.cards[4]
+    }
+
+    /// Return the Turn and River `Card` as slice, so we can use `.contains`
+    pub fn turn_and_river(&self) -> &[Card] {
+        &self.cards[3..4]
     }
 
     /// Returns the `Rank` for a given discriminator of `Rank`
@@ -182,13 +195,13 @@ mod tests {
         let board = Board::new(&deck.cards).full();
         // the default deck is ordered so we expect
         // -  flop: A K Q
-        // -  turn: 9
-        // - river: 7
+        // -  turn: J
+        // - river: T
         assert_eq!(board.flop(), [Card::from("Ac").unwrap(),Card::from("Kc").unwrap(),Card::from("Qc").unwrap()]);
-        assert_eq!(board.turn(), &Card::from("Tc").unwrap());
-        assert_eq!(board.river(), &Card::from("8c").unwrap());
+        assert_eq!(board.turn(), &Card::from("Jc").unwrap());
+        assert_eq!(board.river(), &Card::from("Tc").unwrap());
 
-        let expected_ranks = [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1];
+        let expected_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1];
         assert_eq!(board.ranks, expected_ranks);
         let expected_suits = [5, 0, 0, 0];
         assert_eq!(board.suits, expected_suits);
@@ -196,19 +209,24 @@ mod tests {
         assert_eq!(board.ranks[Rank::Ace as usize], 1);
         assert_eq!(board.ranks[Rank::King as usize], 1);
         assert_eq!(board.ranks[Rank::Queen as usize], 1);
+        assert_eq!(board.ranks[Rank::Jack as usize], 1);
         assert_eq!(board.ranks[Rank::Ten as usize], 1);
-        assert_eq!(board.ranks[Rank::Eight as usize], 1);
     }
 
     #[test]
     fn texture_has_flush() {
         let deck = Deck::default();
         let board = Board::new(&deck.cards).full();
-        let expected_ranks = [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1];
+        let expected_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1];
         assert_eq!(board.ranks, expected_ranks);
         let expected_suits = [5, 0, 0, 0];
         assert_eq!(board.suits, expected_suits);
         let texture = board.texture();
         assert_eq!(texture.has_flush, true);
+    }
+
+    #[test]
+    fn mem() {
+        assert_eq!(std::mem::size_of::<Board>(), 160);
     }
 }
