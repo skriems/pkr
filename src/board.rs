@@ -10,9 +10,13 @@ pub struct BoardTexture {
     pub has_pairs: bool,
     pub has_trips: bool,
     pub has_streight: bool,
+    /// true if we have five cards of same `Suit`
     pub has_flush: bool,
+    /// true if we have at least two cards of same `Suit`
     pub flush_draw: bool,
+    /// true if we have a least three cards of same `Suit`
     pub flush_with_suited: bool,
+    /// true if we have a least four cards of same `Suit`
     pub flush_with_one: bool,
     pub has_quads: bool,
 }
@@ -42,7 +46,15 @@ impl<'a> Board<'a> {
     pub fn new(cards: &'a [Card]) -> Self {
         let ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let suits = [0, 0, 0, 0];
-        Board { cards, ranks, suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
+
+        Board {
+            cards,
+            ranks,
+            suits,
+            flop_dealt: false,
+            turn_dealt: false,
+            river_dealt: false,
+        }
     }
 
     /// Process the Flop
@@ -52,7 +64,14 @@ impl<'a> Board<'a> {
             self.ranks[card.rank as usize] += 1;
             self.suits[card.suit as usize] += 1;
         };
-        Board { cards: self.cards, ranks: self.ranks, suits: self.suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
+
+        Board { cards: self.cards,
+            ranks: self.ranks,
+            suits: self.suits,
+            flop_dealt: true,
+            turn_dealt: false,
+            river_dealt: false,
+        }
     }
 
     /// Process the Turn
@@ -60,7 +79,15 @@ impl<'a> Board<'a> {
         let turn = &self.cards[3];
         self.ranks[turn.rank as usize] += 1;
         self.suits[turn.suit as usize] += 1;
-        Board { cards: self.cards, ranks: self.ranks, suits: self.suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
+
+        Board {
+            cards: self.cards,
+            ranks: self.ranks,
+            suits: self.suits,
+            flop_dealt: self.flop_dealt,
+            turn_dealt: true,
+            river_dealt: false,
+        }
     }
 
     /// Process the River
@@ -68,7 +95,15 @@ impl<'a> Board<'a> {
         let river = &self.cards[4];
         self.ranks[river.rank as usize] += 1;
         self.suits[river.suit as usize] += 1;
-        Board { cards: self.cards, ranks: self.ranks, suits: self.suits, flop_dealt: false, turn_dealt: false, river_dealt: false }
+
+        Board {
+            cards: self.cards,
+            ranks: self.ranks,
+            suits: self.suits,
+            flop_dealt: self.flop_dealt,
+            turn_dealt: self.turn_dealt,
+            river_dealt: true
+        }
     }
 
     /// Process Flop, Turn and River

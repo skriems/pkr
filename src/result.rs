@@ -36,89 +36,6 @@ impl<'a> HandResult<'a> {
         for card in holding.cards {
             suits[card.suit as usize] += 1;
         }
-
-        // let mut hits = [0, 0];
-        // // [0, 0] - HighCard or pocket_pair
-        // // [1, 0] - Pair or Trips(if pocket_pair)
-        // // [0, 1] - Pair
-        // // [1, 1] - TwoPair
-        // // [2, 0] - Quads or Trips(!pocket_pair or flop.is_paired)
-        // // [0, 2] - Trips
-        // let pocket_pair = holding.is_pocket_pair();
-        // let mut rank = HandRank::HighCard;
-
-        // if let Some(flop) = flop {
-        //     for card in flop.cards {
-        //         suits[card.suit as usize] += 1;
-        //         if holding.cards.contains(card) {
-        //             if pocket_pair {
-        //                 hits[0] += 1;
-        //             } else if card == holding.high_card(){
-        //                 hits[0] += 1;
-        //             } else {
-        //                 hits[1] += 1;
-        //             }
-        //         }
-        //     }
-        // }
-
-        // if let Some(turn) = turn {
-        //     suits[turn.suit as usize] += 1;
-        //     if holding.cards.contains(turn) {
-        //         if turn == holding.high_card(){
-        //             hits[0] +=1;
-        //         } else {
-        //             hits[1] +=1;
-        //         }
-        //     }
-        // }
-
-        // if let Some(river) = river {
-        //     suits[river.suit as usize] += 1;
-        //     if holding.cards.contains(river) {
-        //         if river == holding.high_card() {
-        //             hits[0] +=1;
-        //         } else {
-        //             hits[1] +=1;
-        //         }
-        //     }
-        // }
-
-        // let sum = hits[0] + hits[1];
-
-        // if suits[0] > 4 || suits[1] > 4 || suits[2] > 4 || suits[3] > 4 {
-        //     rank = HandRank::Flush;
-        // } else if sum > 0 {
-        //     if sum == 1 {
-        //         if holding.is_pocket_pair() {
-        //             rank = HandRank::Trips;
-        //         } else {
-        //             rank = HandRank::Pair;
-        //         }
-        //     } else if hits[0] == 1 && hits[1] == 1 {
-        //         rank = HandRank::TwoPair;
-        //     } else if sum == 2 {
-        //         if hits[0] == 2 {
-        //             if pocket_pair {
-        //                 rank = HandRank::Quads;
-        //             } else {
-        //                 rank = HandRank::Trips;
-        //             }
-        //         } else if hits[1] == 2 {
-        //             rank = HandRank::Trips;
-        //         } else {
-        //             rank = HandRank::TwoPair;
-        //         }
-        //     } else if sum == 3 {
-        //         if hits[0] == 1 || hits[1] == 1 {
-        //             rank = HandRank::FullHouse;
-        //         } else {
-        //             rank = HandRank::Quads;
-        //         }
-        //     }
-        // } else if holding.is_pocket_pair() {
-        //     rank = HandRank::Pair;
-        // }
         HandResult { holding, suits, board }
     }
 
@@ -168,57 +85,187 @@ impl<'a> HandResult<'a> {
                     }
                 }
             }
+            // TODO: consider pocket pairs?
             return HandRank::TwoPair;
+        }
+
+        // let's check if we have a pocket pair and could improve to trips or
+        // even Quads. Usefull information even before we know that the
+        // board.is_paired
+        let is_pocket_pair = self.holding.is_pocket_pair();
+        let mut has_trips = false;
+        if is_pocket_pair {
+            if self.board.flop_dealt {
+                for card in self.board.flop() {
+                    if self.holding.cards.contains(card) {
+                        // we hit our trips! maybe now Quads?
+                        if has_trips {
+                            return HandRank::Quads;
+                        }
+                        has_trips = true;
+                    }
+                }
+            }
+            if self.board.turn_dealt && self.holding.cards.contains(self.board.turn()) {
+                if has_trips {
+                    return HandRank::Quads;
+                }
+                has_trips = true;
+            }
+            if self.board.river_dealt && self.holding.cards.contains(self.board.river()) {
+                if has_trips {
+                    return HandRank::Quads;
+                }
+                has_trips = true;
+            }
+            // we cannot return Trips here, b/c we have bigger hands to consider below
         }
 
         if board.is_paired {
             // - FullHouse
             for pair in self.board.pairs().iter() {
                 if let Some(rank) = pair {
+                    // taking an arbitrary card of `Rank` here; check PartialEq on `Rank`
                     let card = Card::new(*rank, Suit::Clubs);
                     if self.holding.cards.contains(&card) {
-                        // we could have a FullHouse but which of the holding cards
-                        // has hit the pair?
+
+
+                        // Trips or even FullHouse
+                        // but which of the holding cards has hit the pair?
                         if self.holding.high_card() == &card {
-                            if self.board.flop().contains(self.holding.low_card()) {
-                                // we flopped the FullHouse!
-                                return HandRank::FullHouse;
+                            // we hit the pair with our high card
+                            if self.board.river_dealt {
+                                // TODO consider Turn and River not being dealt yet
+                                if self.board.cards.contains(self.holding.low_card()) {
+                                    return HandRank::FullHouse;
+                                } else {
+                                    // TODO can we have a flush here?
+                                    return HandRank::Trips;
+                                }
                             }
-                            if self.board.flop().contains(self.holding.high_card()) {
-                                // we flopped the FullHouse!
-                                return HandRank::FullHouse;
-                            }
-                            if self.holding.cards.contains(self.board.turn()) ||
-                                self.holding.cards.contains(self.board.river()) {
-                                // FIXME: FullHouse via Turn or River but
-                                // they might not have been dealt yet!
-                                return HandRank::RoyalFlush; // FIXME
-                            }
+                            // if self.board.flop().contains(self.holding.low_card()) {
+                            //     // we flopped the FullHouse!
+                            //     return HandRank::FullHouse;
+                            // }
+                            // if self.board.flop().contains(self.holding.high_card()) {
+                            //     // we flopped the FullHouse!
+                            //     return HandRank::FullHouse;
+                            // }
+                            // if self.holding.cards.contains(self.board.turn()) ||
+                            //     self.holding.cards.contains(self.board.river()) {
+                            //     return HandRank::RoyalFlush; // FIXME
+                            // }
                         } else if self.holding.low_card() == &card {
-                            if self.board.flop().contains(self.holding.high_card()) {
-                                // we flopped the FullHouse!
-                                return HandRank::FullHouse;
+                            // we hit the pair with our low card
+
+                            if self.board.river_dealt {
+                                // TODO consider Turn and River not being dealt yet
+                                if self.board.cards[..4].contains(self.holding.high_card()) {
+                                    return HandRank::FullHouse;
+                                } else {
+                                    // TODO can we have a flush here?
+                                    return HandRank::Trips;
+                                }
                             }
-                            if self.board.flop().contains(self.holding.low_card()) {
-                                // we flopped the FullHouse!
-                                return HandRank::FullHouse;
+                            // if self.board.flop().contains(self.holding.high_card()) {
+                            //     // we flopped the FullHouse!
+                            //     return HandRank::FullHouse;
+                            // }
+                            // if self.board.flop().contains(self.holding.low_card()) {
+                            //     // we flopped the FullHouse!
+                            //     return HandRank::FullHouse;
+                            // }
+                            // if self.holding.cards.contains(self.board.turn()) ||
+                            //     self.holding.cards.contains(self.board.river()) {
+                            //     return HandRank::RoyalFlush; // FIXME
+                            // }
+                        }
+                    }
+
+                    // - we have a pair on the board and haven't hit it
+                    // - we do not have Quads
+                    // - we can still have a FullHouse if `has_trips`
+                    if has_trips {
+                        return HandRank::FullHouse;
+                    }
+
+                    // we can still have TwoPair
+                    if self.board.river_dealt {
+                        for card in &self.board.cards[..5] {
+                            if self.holding.cards.contains(card) {
+                                return HandRank::TwoPair;
                             }
-                            if self.holding.cards.contains(self.board.turn()) ||
-                                self.holding.cards.contains(self.board.river()) {
-                                // FIXME: FullHouse via Turn or River but
-                                // they might not have been dealt yet!
-                                return HandRank::RoyalFlush; // FIXME
+                        }
+                    } else if self.board.turn_dealt {
+                        for card in &self.board.cards[..4] {
+                            if self.holding.cards.contains(card) {
+                                return HandRank::TwoPair;
+                            }
+                        }
+                    } else if self.board.flop_dealt {
+                        for card in &self.board.cards[..3] {
+                            if self.holding.cards.contains(card) {
+                                return HandRank::TwoPair;
                             }
                         }
                     }
-                    if self.holding.cards.contains(self.board.turn()) ||
-                        self.holding.cards.contains(self.board.river()) {
-                        return HandRank::TwoPair;
+                }
+            }
+        }
+
+        if board.flush_with_one || board.flush_with_suited {
+            let mut flush_suit: Option<Suit> = None;
+
+            // do we have suited cards on board and if so - how many?
+            for (idx, number) in self.board.suits.iter().enumerate() {
+                if *number >= 3 {
+                    flush_suit = Some(Suit::from(idx));
+                }
+            }
+
+            // if so, do we have that suit in our holding cards? how many?
+            if let Some(suit) = flush_suit {
+                let mut amount_holding: usize = 0;
+                for card in self.holding.cards {
+                    if card.suit == suit {
+                        amount_holding += 1;
                     }
+                }
+                if board.flush_with_one && amount_holding >= 1 {
+                    return HandRank::Flush;
+                } else if board.flush_with_suited && amount_holding == 2 {
+                    return HandRank::Flush;
+                }
             }
+        }
+
+        if has_trips {
+            return HandRank::Trips;
+        }
+
+        // Now only Pairs and HighCards are left
+        if self.board.river_dealt {
+            for card in &self.board.cards[..5] {
+                if self.holding.cards.contains(card) {
+                    return HandRank::Pair;
+                }
             }
-            // - Trips
-            // - TwoPair High
+        } else if self.board.turn_dealt {
+            for card in &self.board.cards[..4] {
+                if self.holding.cards.contains(card) {
+                    return HandRank::Pair;
+                }
+            }
+        } else if self.board.flop_dealt {
+            for card in &self.board.cards[..3] {
+                if self.holding.cards.contains(card) {
+                    return HandRank::Pair;
+                }
+            }
+        }
+
+        if self.holding.is_pocket_pair() {
+            return HandRank::Pair;
         }
 
         HandRank::HighCard
@@ -230,34 +277,38 @@ impl<'a> HandResult<'a> {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn pair_flop() {
-    //     let holding_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
-    //     let holding = Holding::new(&holding_cards).unwrap();
+    #[test]
+    fn rank() {
+        assert_eq!(HandRank::HighCard < HandRank::Pair, true);
+        assert_eq!(HandRank::Pair < HandRank::TwoPair, true);
+        assert_eq!(HandRank::TwoPair < HandRank::Trips, true);
+        assert_eq!(HandRank::Trips < HandRank::Straight, true);
+        assert_eq!(HandRank::Straight < HandRank::Flush, true);
+        assert_eq!(HandRank::Flush < HandRank::FullHouse, true);
+        assert_eq!(HandRank::FullHouse < HandRank::Quads, true);
+        assert_eq!(HandRank::Quads < HandRank::StraightFlush, true);
+        assert_eq!(HandRank::StraightFlush < HandRank::RoyalFlush, true);
+    }
 
-    //     let board_cards = [
-    //         Card::from("7c").unwrap(),
-    //         Card::from("2s").unwrap(),
-    //         Card::from("Kd").unwrap(),
-    //         Card::from("5d").unwrap(),
-    //         Card::from("7c").unwrap(),
-    //     ];
-    //     let board = Board::new(&board_cards).full();
-    //     let result = HandResult::new(&holding, &board);
-    //     assert_eq!(result.rank(), HandRank::Pair);
+    #[test]
+    fn pair_flop() {
+        let holding_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
 
-    //     let board_cards = [
-    //         Card::from("7c").unwrap(),
-    //         Card::from("2s").unwrap(),
-    //         Card::from("Ad").unwrap(),
-    //         Card::from("5d").unwrap(),
-    //         Card::from("7c").unwrap(),
-    //     ];
-    //     let board = Board::new(&board_cards).full();
-    //     let result = HandResult::new(&holding, &board);
-
-    //     assert_eq!(result.rank(), HandRank::Pair);
-    // }
+        let board_cards = [
+            Card::from("7c").unwrap(),
+            Card::from("2s").unwrap(),
+            Card::from("Kd").unwrap(),
+            Card::from("5d").unwrap(),
+            Card::from("3c").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::Pair);
+    }
 
     #[test]
     fn quads_on_board() {
@@ -392,12 +443,240 @@ mod tests {
             Card::from("Qd").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        assert_eq!(board.flop(), &board_cards[..3]);
+        assert_eq!(board.turn(), &board_cards[3]);
+        assert_eq!(board.river(), &board_cards[4]);
+
+
         let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
         println!("{:#?}", board.texture());
-        println!("board.ranks: {:#?}", board.ranks);
         println!("board.pairs: {:#?}", board.pairs());
-        println!("{:#?}", board.get_rank(3));
         assert_eq!(result.rank(), HandRank::FullHouse);
+    }
+
+    #[test]
+    fn trips_on_turn_high_card() {
+        // [9♣ 3♠], [8♠ 2♦] | T♠ 9❤ J❤ | 9♦ | K❤	[9♣ 3♠] wins with FullHouse
+        let holding_cards = [
+            Card::from("9c").unwrap(),
+            Card::from("3s").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Ts").unwrap(),
+            Card::from("9h").unwrap(),
+            Card::from("Jh").unwrap(),
+            Card::from("9d").unwrap(),
+            Card::from("Kh").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::Trips);
+    }
+
+    #[test]
+    fn trips_on_turn_low_card() {
+        // [9♣ 3♠], [8♠ 2♦] | T♠ 3❤ J❤ | 3♦ | K❤	[9♣ 3♠] wins with FullHouse
+        let holding_cards = [
+            Card::from("9c").unwrap(),
+            Card::from("3s").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Ts").unwrap(),
+            Card::from("3h").unwrap(),
+            Card::from("Jh").unwrap(),
+            Card::from("3d").unwrap(),
+            Card::from("Kh").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::Trips);
+    }
+
+    #[test]
+    fn trips_on_river() {
+        // [5♠ 3♠], [A❤ 6❤ ] | 4♠ A♣ 3❤ | T♣ | A♦	[A❤ 6❤] wins with FullHouse
+        let holding_cards = [
+            Card::from("Ah").unwrap(),
+            Card::from("6h").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("4s").unwrap(),
+            Card::from("Ac").unwrap(),
+            Card::from("3h").unwrap(),
+            Card::from("Tc").unwrap(),
+            Card::from("Ad").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        assert_eq!(board.flop(), &board_cards[..3]);
+        assert_eq!(board.turn(), &board_cards[3]);
+        assert_eq!(board.river(), &board_cards[4]);
+
+
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::Trips);
+    }
+
+    #[test]
+    fn trips_flopped() {
+        // [6♣ 6♠], [9♦ 7❤ ] | A❤ 6❤ 9❤ | 4❤ | K♠	[6♣ 6♠] wins with Pair
+        let holding_cards = [
+            Card::from("6c").unwrap(),
+            Card::from("6s").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Ah").unwrap(),
+            Card::from("6h").unwrap(),
+            Card::from("9h").unwrap(),
+            Card::from("4h").unwrap(),
+            Card::from("Ks").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::Trips);
+    }
+
+    #[test]
+    fn flush_with_one_on_turn() {
+        // [6♣ 6♠], [9♦ 7❤ ] | A❤ 6❤ 9❤ | 4❤ | K♠	[6♣ 6♠] wins with Pair
+        let holding_cards = [
+            Card::from("9d").unwrap(),
+            Card::from("7h").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Ah").unwrap(),
+            Card::from("6h").unwrap(),
+            Card::from("9h").unwrap(),
+            Card::from("4h").unwrap(),
+            Card::from("Ks").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::Flush);
+    }
+
+    #[test]
+    fn high_card() {
+        // [J♦ T♣], [7❤ 4♦] | Q♦ J♠ 2❤ | T❤ | 9♦
+        let holding_cards = [
+            Card::from("7h").unwrap(),
+            Card::from("4d").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Qd").unwrap(),
+            Card::from("Js").unwrap(),
+            Card::from("2h").unwrap(),
+            Card::from("Th").unwrap(),
+            Card::from("9d").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::HighCard);
+
+        // [K♣ T♦], [K♦ 8♠] | 8♦ 2♣ 6♦ | 9♠ | 5♣	¯\_(ツ)_/¯ Pair vs. Pair
+        let holding_cards = [
+            Card::from("Kc").unwrap(),
+            Card::from("Td").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("8d").unwrap(),
+            Card::from("2c").unwrap(),
+            Card::from("6d").unwrap(),
+            Card::from("9s").unwrap(),
+            Card::from("5c").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::HighCard);
+
+        //[K❤ 8♦], [9❤ 8❤] | J♠ 7♦ 2❤ | K♦ | 5♦	¯\_(ツ)_/¯ Pair vs. Pair
+        let holding_cards = [
+            Card::from("9h").unwrap(),
+            Card::from("8h").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Js").unwrap(),
+            Card::from("7d").unwrap(),
+            Card::from("2h").unwrap(),
+            Card::from("Kd").unwrap(),
+            Card::from("5d").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::HighCard);
+    }
+
+    // TODO
+    // [T♠ 5♣], [A♦ 3♣] | A♣ 6♦ 8♣ | 8♦ | 6♣	¯\_(ツ)_/¯ TwoPair vs. TwoPair
+    // [8♣ 4♠], [J♦ 6❤] | 9❤ 5❤ Q♣ | 7♠ | 7♣	¯\_(ツ)_/¯ Pair vs. Pair
+    // [K♠ Q♣], [9♦ 3❤] | 4♠ Q♦ 7❤ | 4♣ | 9❤	[9♦ 3❤] wins with TwoPair
+
+    #[test]
+    fn two_pairs_paired_flop() {
+        // [A♣ 3♣], [J♣ 5♠] | K❤ K♣ 5❤ | 3❤ | 6❤	TwoPair > Pair: true
+        let holding_cards = [
+            Card::from("Jc").unwrap(),
+            Card::from("5s").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Kh").unwrap(),
+            Card::from("Kc").unwrap(),
+            Card::from("5h").unwrap(),
+            Card::from("3h").unwrap(),
+            Card::from("6h").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+
+        let result = HandResult::new(&holding, &board);
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(result.rank(), HandRank::TwoPair);
     }
 
     #[test]
