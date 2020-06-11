@@ -699,6 +699,16 @@ mod tests {
 
         let holding = Holding::new(&cards).unwrap();
         assert_eq!(holding.cards.contains(&card), true);
+
+        // 66
+        let cards = [
+            Card::from("6s").unwrap(),
+            Card::from("6c").unwrap(),
+        ];
+        let card = Card::from("6d").unwrap();
+
+        let holding = Holding::new(&cards).unwrap();
+        assert_eq!(holding.cards.contains(&card), true);
     }
 
     #[test]
