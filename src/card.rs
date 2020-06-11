@@ -75,6 +75,7 @@ impl Card {
     }
 }
 
+// TODO tests
 impl From<usize> for Rank {
     fn from(n: usize) -> Self {
         match n {
@@ -91,6 +92,19 @@ impl From<usize> for Rank {
             10 => Rank::Queen,
             11 => Rank::King,
             12 => Rank::Ace,
+            _ => unreachable!()
+        }
+    }
+}
+
+// TODO tests
+impl From<usize> for Suit {
+    fn from(n: usize) -> Self {
+        match n {
+            0 => Suit::Clubs,
+            1 => Suit::Spades,
+            2 => Suit::Hearts,
+            3 => Suit::Diamonds,
             _ => unreachable!()
         }
     }
