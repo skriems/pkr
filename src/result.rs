@@ -27,20 +27,22 @@ pub struct HandResult<'a> {
     suits: [usize; 4],
     /// the `Board`
     board: &'a Board<'a>,
+    /// the precalculated `BoardTexture`, so we do not need to process it for each `Holding`
+    texture: &'a BoardTexture,
 }
 
 impl<'a> HandResult<'a> {
-    pub fn new(holding: &'a Holding, board: &'a Board) -> Self {
+    pub fn new(holding: &'a Holding, board: &'a Board, texture: &'a BoardTexture) -> Self {
 
         let mut suits = [0, 0, 0, 0];
         for card in holding.cards {
             suits[card.suit as usize] += 1;
         }
-        HandResult { holding, suits, board }
+        HandResult { holding, suits, board, texture }
     }
 
     pub fn rank(&self) -> HandRank {
-        let board = self.board.texture();
+        let board = self.texture;
 
         if board.has_quads {
             return HandRank::Quads;
@@ -303,11 +305,12 @@ mod tests {
             Card::from("3c").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::Pair);
+        assert_eq!(rank, HandRank::Pair);
     }
 
     #[test]
@@ -323,8 +326,9 @@ mod tests {
             Card::from("Jh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
-        assert_eq!(result.rank(), HandRank::Quads);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
+        assert_eq!(rank, HandRank::Quads);
     }
 
     #[test]
@@ -340,8 +344,9 @@ mod tests {
             Card::from("Kh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
-        assert_eq!(result.rank(), HandRank::FullHouse);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
+        assert_eq!(rank, HandRank::FullHouse);
     }
 
     #[test]
@@ -357,16 +362,14 @@ mod tests {
             Card::from("Jh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
-        assert_eq!(result.rank(), HandRank::FullHouse);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
+        assert_eq!(rank, HandRank::FullHouse);
     }
 
-    // TODO
-    // [8♦ 4❤], [5♦ 3♠] | 5♠ 6♠ A♦ | 5❤ | 7♣	[5♦ 3♠] wins with FullHouse
-
-    // [T♦ 6♦], [A♦ 7♦] | Q♦ 8♣ A♠ | 7❤ | 7♠	[A♦ 7♦] wins with TwoPair
     #[test]
     fn full_house_paired_board_on_river() {
+        // [T♦ 6♦], [A♦ 7♦] | Q♦ 8♣ A♠ | 7❤ | 7♠	[A♦ 7♦] wins with TwoPair
         let holding_cards = [Card::from("Ad").unwrap(), Card::from("7d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
@@ -378,10 +381,11 @@ mod tests {
             Card::from("7s").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board.ranks);
         println!("{:#?}", board.texture());
-        assert_eq!(result.rank(), HandRank::FullHouse);
+        assert_eq!(rank, HandRank::FullHouse);
     }
 
     // [J❤ 5♠], [9♣ 6❤] | 2❤ 5♦ 2♠ | Q❤ | 5❤ 	[J❤ 5♠] wins with TwoPair
@@ -398,10 +402,11 @@ mod tests {
             Card::from("5h").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board.ranks);
         println!("{:#?}", board.texture());
-        assert_eq!(result.rank(), HandRank::FullHouse);
+        assert_eq!(rank, HandRank::FullHouse);
     }
 
     // TODO two_pairs_paired_board_and_river
@@ -419,11 +424,12 @@ mod tests {
             Card::from("Kh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board.texture());
         println!("{:#?}", board.ranks);
         println!("{:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::TwoPair);
+        assert_eq!(rank, HandRank::TwoPair);
     }
 
     #[test]
@@ -443,16 +449,17 @@ mod tests {
             Card::from("Qd").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        let texture = board.texture();
         assert_eq!(board.flop(), &board_cards[..3]);
         assert_eq!(board.turn(), &board_cards[3]);
         assert_eq!(board.river(), &board_cards[4]);
 
 
-        let result = HandResult::new(&holding, &board);
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::FullHouse);
+        assert_eq!(rank, HandRank::FullHouse);
     }
 
     #[test]
@@ -472,11 +479,12 @@ mod tests {
             Card::from("Kh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::Trips);
+        assert_eq!(rank, HandRank::Trips);
     }
 
     #[test]
@@ -496,11 +504,12 @@ mod tests {
             Card::from("Kh").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::Trips);
+        assert_eq!(rank, HandRank::Trips);
     }
 
     #[test]
@@ -520,16 +529,17 @@ mod tests {
             Card::from("Ad").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        let texture = board.texture();
         assert_eq!(board.flop(), &board_cards[..3]);
         assert_eq!(board.turn(), &board_cards[3]);
         assert_eq!(board.river(), &board_cards[4]);
 
 
-        let result = HandResult::new(&holding, &board);
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::Trips);
+        assert_eq!(rank, HandRank::Trips);
     }
 
     #[test]
@@ -549,12 +559,13 @@ mod tests {
             Card::from("Ks").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        let texture = board.texture();
 
-        let result = HandResult::new(&holding, &board);
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::Trips);
+        assert_eq!(rank, HandRank::Trips);
     }
 
     #[test]
@@ -574,12 +585,13 @@ mod tests {
             Card::from("Ks").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        let texture = board.texture();
 
-        let result = HandResult::new(&holding, &board);
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::Flush);
+        assert_eq!(rank, HandRank::Flush);
     }
 
     #[test]
@@ -599,12 +611,13 @@ mod tests {
             Card::from("9d").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        let texture = board.texture();
 
-        let result = HandResult::new(&holding, &board);
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::HighCard);
+        assert_eq!(rank, HandRank::HighCard);
 
         // [K♣ T♦], [K♦ 8♠] | 8♦ 2♣ 6♦ | 9♠ | 5♣	¯\_(ツ)_/¯ Pair vs. Pair
         let holding_cards = [
@@ -621,11 +634,12 @@ mod tests {
             Card::from("5c").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::HighCard);
+        assert_eq!(rank, HandRank::HighCard);
 
         //[K❤ 8♦], [9❤ 8❤] | J♠ 7♦ 2❤ | K♦ | 5♦	¯\_(ツ)_/¯ Pair vs. Pair
         let holding_cards = [
@@ -642,17 +656,102 @@ mod tests {
             Card::from("5d").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        let result = HandResult::new(&holding, &board);
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::HighCard);
+        assert_eq!(rank, HandRank::HighCard);
     }
 
-    // TODO
-    // [T♠ 5♣], [A♦ 3♣] | A♣ 6♦ 8♣ | 8♦ | 6♣	¯\_(ツ)_/¯ TwoPair vs. TwoPair
-    // [8♣ 4♠], [J♦ 6❤] | 9❤ 5❤ Q♣ | 7♠ | 7♣	¯\_(ツ)_/¯ Pair vs. Pair
-    // [K♠ Q♣], [9♦ 3❤] | 4♠ Q♦ 7❤ | 4♣ | 9❤	[9♦ 3❤] wins with TwoPair
+    #[test]
+    fn two_pair_vs_two_pair() {
+        // [K♠ Q♣], [9♦ 3❤] | 4♠ Q♦ 7❤ | 4♣ | 9❤	[9♦ 3❤] wins with TwoPair
+        let board_cards = [
+            Card::from("4s").unwrap(),
+            Card::from("Qd").unwrap(),
+            Card::from("7h").unwrap(),
+            Card::from("4c").unwrap(),
+            Card::from("9h").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [
+            Card::from("Ks").unwrap(),
+            Card::from("Qc").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let rank1 = HandResult::new(&holding, &board, &texture).rank();
+        assert_eq!(rank1, HandRank::TwoPair);
+
+        let holding_cards = [
+            Card::from("9d").unwrap(),
+            Card::from("3h").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let rank2 = HandResult::new(&holding, &board, &texture).rank();
+        println!("{:#?}", board);
+        println!("{:#?}", texture);
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(rank2, HandRank::TwoPair);
+
+        assert_eq!(rank1 > rank2, true);
+
+        // [T♠ 5♣], [A♦ 3♣] | A♣ 6♦ 8♣ | 8♦ | 6♣	¯\_(ツ)_/¯ TwoPair vs. TwoPair
+        let board_cards = [
+            Card::from("Ac").unwrap(),
+            Card::from("6d").unwrap(),
+            Card::from("8c").unwrap(),
+            Card::from("8d").unwrap(),
+            Card::from("6c").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [
+            Card::from("Ts").unwrap(),
+            Card::from("5c").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let rank1 = HandResult::new(&holding, &board, &texture).rank();
+        assert_eq!(rank1, HandRank::TwoPair);
+
+        let holding_cards = [
+            Card::from("Ad").unwrap(),
+            Card::from("3c").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let rank2 = HandResult::new(&holding, &board, &texture).rank();
+        assert_eq!(rank2, HandRank::TwoPair);
+
+        assert_eq!(rank1 > rank2, true);
+    }
+
+    #[test]
+    fn two_pairs_with_pocket_pairs() {
+        // [Q♦ 5♠], [6♣ 6♦] | T❤ 8♣ 8♠ | K♣ | 4♠	[6♣ 6♦] wins with Pair
+        let holding_cards = [
+            Card::from("6c").unwrap(),
+            Card::from("6d").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("Th").unwrap(),
+            Card::from("8c").unwrap(),
+            Card::from("8s").unwrap(),
+            Card::from("Kc").unwrap(),
+            Card::from("4s").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(rank, HandRank::TwoPair);
+    }
 
     #[test]
     fn two_pairs_paired_flop() {
@@ -671,18 +770,19 @@ mod tests {
             Card::from("6h").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
+        let texture = board.texture();
 
-        let result = HandResult::new(&holding, &board);
+        let rank = HandResult::new(&holding, &board, &texture).rank();
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
-        assert_eq!(result.rank(), HandRank::TwoPair);
+        assert_eq!(rank, HandRank::TwoPair);
     }
 
     #[test]
     fn mem() {
         assert_eq!(std::mem::size_of::<HandRank>(), 1);
-        assert_eq!(std::mem::size_of::<HandResult>(), 48);
+        assert_eq!(std::mem::size_of::<HandResult>(), 56);
     }
 
 }
