@@ -6,9 +6,13 @@ use crate::card::*;
 #[derive(Debug)]
 pub struct BoardTexture {
     pub is_rainbow: bool,
+    /// `Board` has _one_ pair
     pub is_paired: bool,
+    /// `Board` has _two_ pairs
     pub has_pairs: bool,
+    /// `Board` has trips
     pub has_trips: bool,
+    /// `Board` has a streight
     pub has_streight: bool,
     /// true if we have five cards of same `Suit`
     pub has_flush: bool,
@@ -129,6 +133,31 @@ impl<'a> Board<'a> {
     /// Return the Turn and River `Card` as slice, so we can use `.contains`
     pub fn turn_and_river(&self) -> &[Card] {
         &self.cards[3..4]
+    }
+
+    /// Determine the `Boards` HighCard
+    pub fn high_card(&self) -> &Card {
+        let mut high_card = &self.cards[0];
+        if self.river_dealt {
+            for card in &self.cards[..5] {
+                if card >= high_card {
+                    high_card = card;
+                }
+            }
+        } else if self.turn_dealt {
+            for card in &self.cards[..4] {
+                if card >= high_card {
+                    high_card = card;
+                }
+            }
+        } else if self.flop_dealt {
+            for card in &self.cards[..3] {
+                if card >= high_card {
+                    high_card = card;
+                }
+            }
+        }
+        high_card
     }
 
     /// Returns the `Rank` for a given discriminator of `Rank`
@@ -258,6 +287,23 @@ mod tests {
         assert_eq!(board.suits, expected_suits);
         let texture = board.texture();
         assert_eq!(texture.has_flush, true);
+    }
+
+    #[test]
+    fn high_card() {
+        let deck = Deck::default();
+        let board = Board::new(&deck.cards[1..4]).with_flop();
+        println!("{:?}", board);
+        println!("{:?}", board.high_card());
+        assert_eq!(board.high_card() == &Card::from("Kc").unwrap(), true);
+
+        let board_cards = [
+            Card::from("Th").unwrap(),
+            Card::from("8c").unwrap(),
+            Card::from("8s").unwrap(),
+        ];
+        let board = Board::new(&board_cards).with_flop();
+        assert_eq!(board.high_card() == &Card::from("Th").unwrap(), true);
     }
 
     #[test]
