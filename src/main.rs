@@ -41,6 +41,20 @@ fn main() {
                     winner_rank = Some(&vilan_rank);
                 }
             }
+
+            // split with HighCard by hero.beats(vilan)
+            if hero_rank == HandRank::HighCard {
+                if !hero.pairs(&vilan) {
+                    if hero.beats(&vilan) {
+                        winner = Some(hero);
+                        winner_rank = Some(&hero_rank);
+                    } else {
+                        winner = Some(vilan);
+                        winner_rank = Some(&vilan_rank);
+                    }
+                }
+
+            }
         }
 
         if let Some(player) = winner {
