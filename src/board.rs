@@ -2,46 +2,49 @@ use crate::card::*;
 
 /// Meta Data to minimize processing of the internal `Board.ranks` and `Board.suits`. It's meant to
 /// provide the basic _texture_ of the `Board` to the caller (mostly `HandResult`) for further
-/// processing.
+/// processing which needs to happen only once for N `Holdings`.
 #[derive(Debug)]
 pub struct BoardTexture {
+    /// `true` as long as there no more than one `Suit` each
     pub is_rainbow: bool,
-    /// `Board` has _one_ pair
+    /// has _one_ pair
     pub is_paired: bool,
-    /// `Board` has _two_ pairs
+    /// has _two_ pairs
     pub has_pairs: bool,
-    /// `Board` has trips
+    /// has trips
     pub has_trips: bool,
-    /// `Board` has a streight
+    /// has a streight
     pub has_streight: bool,
-    /// true if we have five cards of same `Suit`
+    /// `true` if we have five cards of the same `Suit`
     pub has_flush: bool,
-    /// true if we have at least two cards of same `Suit`
+    /// `true` if we have at least two cards of same `Suit`
     pub flush_draw: bool,
-    /// true if we have a least three cards of same `Suit`
+    /// `true` if we have a least three cards of same `Suit`
     pub flush_with_suited: bool,
-    /// true if we have a least four cards of same `Suit`
+    /// `true` if we have a least four cards of same `Suit`
     pub flush_with_one: bool,
+    /// `true` if we have quads on the board
     pub has_quads: bool,
 }
 
 /// The `Board` takes a slice of Cards and stores the count of their `Rank` and `Suit` as u8
 /// arrays. The enums descriminators are used for indexing those arrays to infer the `Rank`.
+///
 /// Note that we do not skip a `Card` before dealing the Turn and River for easier `HandResult`
 /// evaluation.  The caller would need to do that.
 #[derive(Debug)]
 pub struct Board<'a> {
     /// Slice of Cards
     pub cards: &'a [Card],
-    /// Array of 13 u8 for each respective `Rank`
+    /// Array of 13 usize for each respective `Rank`
     pub ranks: [usize; 13],
-    /// Array of 4 u8 for each respective `Suit`
+    /// Array of 4 usize for each respective `Suit`
     pub suits: [usize; 4],
-    /// If the Flop has been dealt
+    /// If the flop has been dealt
     pub flop_dealt: bool,
-    /// If the Turn card has been dealt
+    /// If the turn card has been dealt
     pub turn_dealt: bool,
-    /// If the River card has been dealt
+    /// If the river card has been dealt
     pub river_dealt: bool,
 }
 
@@ -303,7 +306,7 @@ mod tests {
             Card::from("8s").unwrap(),
         ];
         let board = Board::new(&board_cards).with_flop();
-        assert_eq!(board.high_card() == &Card::from("Th").unwrap(), true);
+        assert_eq!(board.high_card(), &Card::from("Th").unwrap());
     }
 
     #[test]

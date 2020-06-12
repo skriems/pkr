@@ -30,7 +30,7 @@ pub struct HandResult<'a> {
     /// similar to the `Board` we store the holding cards `Suits` in an usize array
     suits: [usize; 4],
     /// HighCard from either `Holding` or the `Board`
-    high_card: &'a Card,
+    pub high_card: &'a Card,
 }
 
 impl<'a> HandResult<'a> {
@@ -45,7 +45,6 @@ impl<'a> HandResult<'a> {
         let board_high = board.high_card();
         if board_high > high_card {
             high_card = board_high;
-
         }
         HandResult { holding, board, texture, suits, high_card }
     }
@@ -806,12 +805,38 @@ mod tests {
         assert_eq!(rank, HandRank::TwoPair);
     }
 
+    #[test]
+    fn trips_runner_runner() {
+        // [T♦ 8♣], [9♠ 5♦] | 2♠ 4♦ T♣ | 9❤ | 9♦	[9♠ 5♦] wins with FullHouse
+        let holding_cards = [
+            Card::from("9s").unwrap(),
+            Card::from("5d").unwrap()
+        ];
+        let holding = Holding::new(&holding_cards).unwrap();
+
+        let board_cards = [
+            Card::from("2s").unwrap(),
+            Card::from("4d").unwrap(),
+            Card::from("Tc").unwrap(),
+            Card::from("9h").unwrap(),
+            Card::from("9d").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+        let rank = HandResult::new(&holding, &board, &texture).rank();
+        println!("{:#?}", board);
+        println!("{:#?}", board.texture());
+        println!("board.pairs: {:#?}", board.pairs());
+        assert_eq!(rank, HandRank::Trips);
+    }
+
+    // TODO
+    // [7♣ 3♣], [7♠ 5♣] | T♠ Q❤ 4❤ | 6♠ | Q♦	¯\_(ツ)_/¯ HighCard vs. HighCard 
 
     #[test]
     fn mem() {
         assert_eq!(std::mem::size_of::<HandRank>(), 1);
         assert_eq!(std::mem::size_of::<HandResult>(), 64);
     }
-
 }
 
