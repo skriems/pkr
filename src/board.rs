@@ -35,7 +35,7 @@ pub struct BoardTexture {
 #[derive(Debug)]
 pub struct Board<'a> {
     /// Slice of Cards
-    pub cards: &'a [Card],
+    cards: &'a [Card],
     /// Array of 13 usize for each respective `Rank`
     pub ranks: [usize; 13],
     /// Array of 4 usize for each respective `Suit`
@@ -116,6 +116,17 @@ impl<'a> Board<'a> {
     /// Process Flop, Turn and River
     pub fn full(&mut self) -> Self {
         self.with_flop().with_turn().with_river()
+    }
+
+    /// Return a slice of Cards
+    pub fn cards(&self) -> &[Card] {
+        if self.river_dealt {
+            &self.cards[..5]
+        } else if self.turn_dealt {
+            &self.cards[..4]
+        } else {
+            &self.cards[..3]
+        }
     }
 
     /// Return the flop slice

@@ -143,26 +143,20 @@ impl<'a> HandResult<'a> {
 
                         if self.holding.high_card() == &card {
                             // we hit the pair with our high card
-                            if self.board.river_dealt {
-                                // TODO consider Turn and River not being dealt yet
-                                if self.board.cards.contains(self.holding.low_card()) {
-                                    return HandRank::FullHouse;
-                                } else {
-                                    // TODO can we have a flush here?
-                                    return HandRank::Trips;
-                                }
+                            if self.board.cards().contains(self.holding.low_card()) {
+                                return HandRank::FullHouse;
+                            } else {
+                                // TODO can we have a flush here?
+                                return HandRank::Trips;
                             }
                         } else if self.holding.low_card() == &card {
                             // we hit the pair with our low card
 
-                            if self.board.river_dealt {
-                                // TODO consider Turn and River not being dealt yet
-                                if self.board.cards[..4].contains(self.holding.high_card()) {
-                                    return HandRank::FullHouse;
-                                } else {
-                                    // TODO can we have a flush here?
-                                    return HandRank::Trips;
-                                }
+                            if self.board.cards().contains(self.holding.high_card()) {
+                                return HandRank::FullHouse;
+                            } else {
+                                // TODO can we have a flush here?
+                                return HandRank::Trips;
                             }
                         }
                     }
@@ -179,23 +173,9 @@ impl<'a> HandResult<'a> {
                         return HandRank::TwoPair;
                     }
 
-                    if self.board.river_dealt {
-                        for card in &self.board.cards[..5] {
-                            if self.holding.cards.contains(card) {
-                                return HandRank::TwoPair;
-                            }
-                        }
-                    } else if self.board.turn_dealt {
-                        for card in &self.board.cards[..4] {
-                            if self.holding.cards.contains(card) {
-                                return HandRank::TwoPair;
-                            }
-                        }
-                    } else if self.board.flop_dealt {
-                        for card in &self.board.cards[..3] {
-                            if self.holding.cards.contains(card) {
-                                return HandRank::TwoPair;
-                            }
+                    for card in self.board.cards() {
+                        if self.holding.cards.contains(card) {
+                            return HandRank::TwoPair;
                         }
                     }
                 }
