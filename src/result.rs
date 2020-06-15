@@ -136,6 +136,8 @@ impl<'a> HandResult<'a> {
             return HandRank::Straight(rank);
         }
 
+        let is_pocket_pair = self.holding.is_pocket_pair();
+
         if self.texture.has_trips {
             if let Some(rank) = get_rank(&self.board.ranks, 3, false) {
                 // we can use an arbitrary suit here,
@@ -149,7 +151,7 @@ impl<'a> HandResult<'a> {
                 }
 
                 // - FullHouse
-                if self.texture.is_paired || self.holding.is_pocket_pair() {
+                if self.texture.is_paired || is_pocket_pair {
                     return HandRank::FullHouse;
                 }
 
@@ -174,32 +176,16 @@ impl<'a> HandResult<'a> {
         // let's check if we have a pocket pair and could improve to trips or
         // even Quads. Usefull information even before we know that the
         // self.texture.is_paired
-        let is_pocket_pair = self.holding.is_pocket_pair();
         let mut has_trips = false;
         if is_pocket_pair {
-            // TODO: can we use board.cards() here?
-            if self.board.flop_dealt {
-                for card in self.board.flop() {
-                    if self.holding.cards.contains(card) {
-                        // we hit our trips! maybe now Quads?
-                        if has_trips {
-                            return HandRank::Quads;
-                        }
-                        has_trips = true;
+            for card in self.board.cards() {
+                if self.holding.cards.contains(card) {
+                    // we hit our trips! maybe now Quads?
+                    if has_trips {
+                        return HandRank::Quads;
                     }
+                    has_trips = true;
                 }
-            }
-            if self.board.turn_dealt && self.holding.cards.contains(self.board.turn()) {
-                if has_trips {
-                    return HandRank::Quads;
-                }
-                has_trips = true;
-            }
-            if self.board.river_dealt && self.holding.cards.contains(self.board.river()) {
-                if has_trips {
-                    return HandRank::Quads;
-                }
-                has_trips = true;
             }
             // we cannot return Trips here, b/c we have bigger hands to consider below
         }
@@ -241,7 +227,7 @@ impl<'a> HandResult<'a> {
                     }
 
                     // we can still have TwoPair
-                    if self.holding.is_pocket_pair() {
+                    if is_pocket_pair {
                         return HandRank::TwoPair;
                     }
 
@@ -289,7 +275,7 @@ impl<'a> HandResult<'a> {
 
         if hits == 2 {
             return HandRank::TwoPair;
-        } else if hits == 1 || self.holding.is_pocket_pair() || self.texture.is_paired {
+        } else if hits == 1 || is_pocket_pair || self.texture.is_paired {
             return HandRank::Pair;
         }
 
@@ -896,6 +882,24 @@ mod tests {
     }
 
     #[test]
+    fn straight_and_flush() {
+        let board_cards = [
+            Card::from("Jh").unwrap(),
+            Card::from("Tc").unwrap(),
+            Card::from("9c").unwrap(),
+            Card::from("3c").unwrap(),
+            Card::from("2h").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result = HandResult::new(&holding, &board, &texture);
+        assert_eq!(result.rank(), HandRank::Flush(Suit::Clubs));
+    }
+
+    #[test]
     fn full_house_on_board() {
         let holding_cards = [Card::from("Qc").unwrap(), Card::from("Jc").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
@@ -1121,6 +1125,27 @@ mod tests {
         println!("{:#?}", board.texture());
         println!("board.pairs: {:#?}", board.pairs());
         assert_eq!(result.rank(), HandRank::Flush(Suit::Hearts));
+    }
+
+    #[test]
+    fn straightflush() {
+        let board_cards = [
+            Card::from("Jh").unwrap(),
+            Card::from("Tc").unwrap(),
+            Card::from("9c").unwrap(),
+            Card::from("3c").unwrap(),
+            Card::from("Jc").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result = HandResult::new(&holding, &board, &texture);
+        assert_eq!(
+            result.rank(),
+            HandRank::StraightFlush(Rank::King, Suit::Clubs)
+        );
     }
 
     #[test]

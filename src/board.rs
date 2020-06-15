@@ -179,7 +179,6 @@ impl BoardTexture {
         let mut last_idx = 0;
         let mut connected = 0;
 
-        println!("{:?}", &board.ranks);
         for (idx, amount) in board.ranks.iter().enumerate() {
             match amount {
                 1 => {
