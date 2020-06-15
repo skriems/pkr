@@ -1,3 +1,12 @@
+//! TODO: elaborate
+//! - Deck
+//!     - Hand
+//!         - Holding
+//!         - Board
+//!             - BoardTexture
+//!     - HandResult (Holding, Board, BoardTexture)
+//!         - HandRank
+
 pub mod board;
 pub mod card;
 pub mod deck;

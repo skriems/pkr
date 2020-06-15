@@ -23,38 +23,12 @@ fn main() {
         let mut winner: Option<&Holding> = None;
         let mut winner_rank: Option<&HandRank> = None;
 
-        if hero_rank > vilan_rank {
+        if hero_result > vilan_result {
             winner = Some(hero);
             winner_rank = Some(&hero_rank);
-        } else if hero_rank < vilan_rank {
+        } else if hero_result < vilan_result {
             winner = Some(vilan);
             winner_rank = Some(&vilan_rank);
-        } else if hero_rank == vilan_rank {
-
-            // split with TwoPair by high_card
-            if hero_rank == HandRank::TwoPair {
-                if hero_result.high_card > vilan_result.high_card {
-                    winner = Some(hero);
-                    winner_rank = Some(&hero_rank);
-                } else if hero_result.high_card < vilan_result.high_card {
-                    winner = Some(vilan);
-                    winner_rank = Some(&vilan_rank);
-                }
-            }
-
-            // split with HighCard by hero.beats(vilan)
-            if hero_rank == HandRank::HighCard {
-                if !hero.pairs(&vilan) {
-                    if hero.beats(&vilan) {
-                        winner = Some(hero);
-                        winner_rank = Some(&hero_rank);
-                    } else {
-                        winner = Some(vilan);
-                        winner_rank = Some(&vilan_rank);
-                    }
-                }
-
-            }
         }
 
         if let Some(player) = winner {
