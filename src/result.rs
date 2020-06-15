@@ -36,7 +36,6 @@ pub struct HandResult<'a> {
 
 impl<'a> HandResult<'a> {
     pub fn new(holding: &'a Holding, board: &'a Board, texture: &'a BoardTexture) -> Self {
-
         let mut ranks = board.ranks;
         let mut suits = board.suits;
         for card in holding.cards {
@@ -44,7 +43,13 @@ impl<'a> HandResult<'a> {
             suits[card.suit as usize] += 1;
         }
 
-        HandResult { holding, board, texture, ranks, suits }
+        HandResult {
+            holding,
+            board,
+            texture,
+            ranks,
+            suits,
+        }
     }
 
     /// return the sum of `Ranks` for a given `amount` of HighCards
@@ -189,7 +194,6 @@ impl<'a> HandResult<'a> {
                     // taking an arbitrary card of `Rank` here; check PartialEq on `Rank`
                     let card = Card::new(*rank, Suit::Clubs);
                     if self.holding.cards.contains(&card) {
-
                         if self.holding.high_card() == &card {
                             // we hit the pair with our high card
                             if self.board.cards().contains(self.holding.low_card()) {
@@ -288,19 +292,17 @@ impl<'a> PartialOrd for HandResult<'a> {
             return self_rank.partial_cmp(&other_rank);
         } else {
             match self_rank {
-                HandRank::HighCard => {
-                    self.high_cards(5).partial_cmp(&other.high_cards(5))
-                },
+                HandRank::HighCard => self.high_cards(5).partial_cmp(&other.high_cards(5)),
                 HandRank::Pair => {
                     let self_pair = self.get_rank(2, false);
                     let other_pair = other.get_rank(2, false);
                     // both have the same pair. So partial_cmp between 3 high_cards
                     if self_pair == other_pair {
-                        return self.high_cards(3).partial_cmp(&other.high_cards(3))
+                        return self.high_cards(3).partial_cmp(&other.high_cards(3));
                     }
                     // otherwise compare the ranks
                     (self_pair).partial_cmp(&other_pair)
-                },
+                }
                 HandRank::TwoPair => {
                     let self_pair1 = self.get_rank(2, false);
                     let other_pair1 = other.get_rank(2, false);
@@ -315,7 +317,7 @@ impl<'a> PartialOrd for HandResult<'a> {
                         }
                         return self.high_cards(1).partial_cmp(&other.high_cards(1));
                     }
-                },
+                }
                 HandRank::Trips => {
                     let self_trips = self.get_rank(3, false);
                     let other_trips = other.get_rank(3, false);
@@ -323,13 +325,13 @@ impl<'a> PartialOrd for HandResult<'a> {
                         return self_trips.partial_cmp(&other_trips);
                     }
                     return self.high_cards(2).partial_cmp(&other.high_cards(2));
-                },
+                }
                 // TODO: Straight
                 HandRank::Flush(ref suit) => {
                     let self_suit_rank = self.suit_rank(*suit);
                     let other_suit_rank = other.suit_rank(*suit);
                     return self_suit_rank.partial_cmp(&other_suit_rank);
-                },
+                }
                 HandRank::FullHouse => {
                     let self_trips = self.get_rank(3, false);
                     let other_trips = other.get_rank(3, false);
@@ -340,7 +342,7 @@ impl<'a> PartialOrd for HandResult<'a> {
                         let other_pair = other.get_rank(2, false);
                         return self_pair.partial_cmp(&other_pair);
                     }
-                },
+                }
                 HandRank::Quads => {
                     let self_quads = self.get_rank(4, false);
                     let other_quads = other.get_rank(4, false);
@@ -351,21 +353,17 @@ impl<'a> PartialOrd for HandResult<'a> {
                 }
                 // TODO StraightFlush
                 // TODO RoyalFlush
-                _ => {
-                    self_rank.partial_cmp(&other_rank)
-                }
+                _ => self_rank.partial_cmp(&other_rank),
             }
         }
     }
 }
-
 
 /// Returns the `Rank` for a given amount of Cards. Use `skip_first` to get the i.e. 2nd Pair
 pub fn get_rank(ranks: &[usize; 13], amount: usize, skip_first: bool) -> Option<Rank> {
     let mut found = false;
     for (idx, num) in ranks.iter().rev().enumerate() {
         if *num == amount {
-
             if skip_first && !found {
                 found = true;
                 continue;
@@ -376,7 +374,6 @@ pub fn get_rank(ranks: &[usize; 13], amount: usize, skip_first: bool) -> Option<
     }
     None
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -398,10 +395,7 @@ mod tests {
     #[test]
     fn internal_ranks() {
         // [6♠ 4❤], [K♦ 7❤] | J♦ A♠ 8♦ | 8♣ | 2❤	¯\_(ツ)_/¯ HighCard vs. HighCard
-        let holding_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("7h").unwrap()
-        ];
+        let holding_cards = [Card::from("Kd").unwrap(), Card::from("7h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -424,10 +418,7 @@ mod tests {
     #[test]
     fn high_card() {
         // [J♦ T♣], [7❤ 4♦] | Q♦ J♠ 2❤ | T❤ | 9♦
-        let holding_cards = [
-            Card::from("7h").unwrap(),
-            Card::from("4d").unwrap()
-        ];
+        let holding_cards = [Card::from("7h").unwrap(), Card::from("4d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -443,10 +434,7 @@ mod tests {
         assert_eq!(result.rank(), HandRank::HighCard);
 
         // [K♣ T♦], [K♦ 8♠] | 8♦ 2♣ 6♦ | 9♠ | 5♣	¯\_(ツ)_/¯ Pair vs. Pair
-        let holding_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Td").unwrap()
-        ];
+        let holding_cards = [Card::from("Kc").unwrap(), Card::from("Td").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -462,10 +450,7 @@ mod tests {
         assert_eq!(result.rank(), HandRank::HighCard);
 
         //[K❤ 8♦], [9❤ 8❤] | J♠ 7♦ 2❤ | K♦ | 5♦	¯\_(ツ)_/¯ Pair vs. Pair
-        let holding_cards = [
-            Card::from("9h").unwrap(),
-            Card::from("8h").unwrap()
-        ];
+        let holding_cards = [Card::from("9h").unwrap(), Card::from("8h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let board_cards = [
             Card::from("Js").unwrap(),
@@ -483,7 +468,6 @@ mod tests {
         println!("board.pairs: {:#?}", board.pairs());
         assert_eq!(result.suits_on_board(3).unwrap(), Suit::Diamonds);
         assert_eq!(result.rank(), HandRank::HighCard);
-
     }
 
     #[test]
@@ -499,17 +483,11 @@ mod tests {
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
 
-        let holding_cards = [
-            Card::from("Ad").unwrap(),
-            Card::from("3c").unwrap()
-        ];
+        let holding_cards = [Card::from("Ad").unwrap(), Card::from("3c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result1 = HandResult::new(&holding, &board, &texture);
 
-        let holding_cards = [
-            Card::from("Ah").unwrap(),
-            Card::from("8c").unwrap()
-        ];
+        let holding_cards = [Card::from("Ah").unwrap(), Card::from("8c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
 
@@ -543,10 +521,7 @@ mod tests {
     #[test]
     fn pair_vs_pair() {
         // [6♠ 4❤], [K♦ 7❤] | J♦ A♠ 8♦ | 8♣ | 2❤	¯\_(ツ)_/¯ HighCard vs. HighCard
-        let holding_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("7h").unwrap()
-        ];
+        let holding_cards = [Card::from("Kd").unwrap(), Card::from("7h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -561,10 +536,7 @@ mod tests {
         let result1 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result1.rank(), HandRank::Pair);
 
-        let holding_cards = [
-            Card::from("6s").unwrap(),
-            Card::from("4h").unwrap()
-        ];
+        let holding_cards = [Card::from("6s").unwrap(), Card::from("4h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
 
@@ -591,10 +563,7 @@ mod tests {
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
 
-        let holding_cards = [
-            Card::from("Qc").unwrap(),
-            Card::from("3d").unwrap()
-        ];
+        let holding_cards = [Card::from("Qc").unwrap(), Card::from("3d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result = HandResult::new(&holding, &board, &texture);
         assert_eq!(result.rank(), HandRank::TwoPair);
@@ -621,10 +590,7 @@ mod tests {
 
     #[test]
     fn quads_on_board() {
-        let holding_cards = [
-            Card::from("Qc").unwrap(),
-            Card::from("Kc").unwrap()
-        ];
+        let holding_cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let board_cards = [
             Card::from("Ah").unwrap(),
@@ -638,10 +604,7 @@ mod tests {
         let result1 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result1.rank(), HandRank::Quads);
 
-        let holding_cards = [
-            Card::from("Tc").unwrap(),
-            Card::from("9c").unwrap()
-        ];
+        let holding_cards = [Card::from("Tc").unwrap(), Card::from("9c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result2.rank(), HandRank::Quads);
@@ -698,10 +661,7 @@ mod tests {
         ];
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
-        let holding_cards = [
-            Card::from("Ad").unwrap(),
-            Card::from("7d").unwrap()
-        ];
+        let holding_cards = [Card::from("Ad").unwrap(), Card::from("7d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let result = HandResult::new(&holding, &board, &texture);
@@ -720,10 +680,7 @@ mod tests {
         ];
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
-        let holding_cards = [
-            Card::from("Jh").unwrap(),
-            Card::from("5s").unwrap()
-        ];
+        let holding_cards = [Card::from("Jh").unwrap(), Card::from("5s").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let result = HandResult::new(&holding, &board, &texture);
@@ -733,10 +690,7 @@ mod tests {
     #[test]
     fn full_house_pockets_and_board_paired_on_river() {
         // [K♣ 2♣], [8❤ 8♠] | 4❤ A♠ Q♣ | 8♦ | Q♦	[8❤ 8♠] wins with TwoPair
-        let holding_cards = [
-            Card::from("8h").unwrap(),
-            Card::from("8s").unwrap()
-        ];
+        let holding_cards = [Card::from("8h").unwrap(), Card::from("8s").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -752,7 +706,6 @@ mod tests {
         assert_eq!(board.turn(), &board_cards[3]);
         assert_eq!(board.river(), &board_cards[4]);
 
-
         let result = HandResult::new(&holding, &board, &texture);
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
@@ -763,10 +716,7 @@ mod tests {
     #[test]
     fn trips_on_turn_high_card() {
         // [9♣ 3♠], [8♠ 2♦] | T♠ 9❤ J❤ | 9♦ | K❤	[9♣ 3♠] wins with FullHouse
-        let holding_cards = [
-            Card::from("9c").unwrap(),
-            Card::from("3s").unwrap()
-        ];
+        let holding_cards = [Card::from("9c").unwrap(), Card::from("3s").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -788,10 +738,7 @@ mod tests {
     #[test]
     fn trips_on_turn_low_card() {
         // [9♣ 3♠], [8♠ 2♦] | T♠ 3❤ J❤ | 3♦ | K❤	[9♣ 3♠] wins with FullHouse
-        let holding_cards = [
-            Card::from("9c").unwrap(),
-            Card::from("3s").unwrap()
-        ];
+        let holding_cards = [Card::from("9c").unwrap(), Card::from("3s").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -813,10 +760,7 @@ mod tests {
     #[test]
     fn trips_on_river_a6() {
         // [5♠ 3♠], [A❤ 6❤ ] | 4♠ A♣ 3❤ | T♣ | A♦	[A❤ 6❤] wins with FullHouse
-        let holding_cards = [
-            Card::from("Ah").unwrap(),
-            Card::from("6h").unwrap()
-        ];
+        let holding_cards = [Card::from("Ah").unwrap(), Card::from("6h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -832,7 +776,6 @@ mod tests {
         assert_eq!(board.turn(), &board_cards[3]);
         assert_eq!(board.river(), &board_cards[4]);
 
-
         let result = HandResult::new(&holding, &board, &texture);
         println!("{:#?}", board);
         println!("{:#?}", board.texture());
@@ -843,10 +786,7 @@ mod tests {
     #[test]
     fn trips_on_river_kj() {
         // [K♠ J♦], [7♦ 6♠] | K♦ 8❤ 5♠ | 4♠ | K♣	[K♠ J♦] wins with FullHouse
-        let holding_cards = [
-            Card::from("Ks").unwrap(),
-            Card::from("Jd").unwrap(),
-        ];
+        let holding_cards = [Card::from("Ks").unwrap(), Card::from("Jd").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -869,10 +809,7 @@ mod tests {
     #[test]
     fn trips_flopped() {
         // [6♣ 6♠], [9♦ 7❤ ] | A❤ 6❤ 9❤ | 4❤ | K♠	[6♣ 6♠] wins with Pair
-        let holding_cards = [
-            Card::from("6c").unwrap(),
-            Card::from("6s").unwrap()
-        ];
+        let holding_cards = [Card::from("6c").unwrap(), Card::from("6s").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -886,10 +823,7 @@ mod tests {
         let texture = board.texture();
         let result1 = HandResult::new(&holding, &board, &texture);
 
-        let holding_cards = [
-            Card::from("9d").unwrap(),
-            Card::from("7h").unwrap()
-        ];
+        let holding_cards = [Card::from("9d").unwrap(), Card::from("7h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
 
@@ -903,7 +837,6 @@ mod tests {
 
     #[test]
     fn flush_vs_flush() {
-
         let board_cards = [
             Card::from("Ah").unwrap(),
             Card::from("6h").unwrap(),
@@ -914,17 +847,11 @@ mod tests {
 
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
-        let holding_cards = [
-            Card::from("Jh").unwrap(),
-            Card::from("7c").unwrap()
-        ];
+        let holding_cards = [Card::from("Jh").unwrap(), Card::from("7c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result1 = HandResult::new(&holding, &board, &texture);
 
-        let holding_cards = [
-            Card::from("Th").unwrap(),
-            Card::from("7c").unwrap()
-        ];
+        let holding_cards = [Card::from("Th").unwrap(), Card::from("7c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result1.rank(), HandRank::Flush(Suit::Hearts));
@@ -937,10 +864,7 @@ mod tests {
     #[test]
     fn flush_with_one_on_turn() {
         // [6♣ 6♠], [9♦ 7❤ ] | A❤ 6❤ 9❤ | 4❤ | K♠	[6♣ 6♠] wins with Pair
-        let holding_cards = [
-            Card::from("9d").unwrap(),
-            Card::from("7h").unwrap()
-        ];
+        let holding_cards = [Card::from("9d").unwrap(), Card::from("7h").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -972,21 +896,15 @@ mod tests {
         ];
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
-        let holding_cards = [
-            Card::from("7c").unwrap(),
-            Card::from("4d").unwrap()
-        ];
+        let holding_cards = [Card::from("7c").unwrap(), Card::from("4d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result1 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result1.rank(), HandRank::TwoPair);
         assert_eq!(result1.get_rank(2, false), Some(Rank::Six));
-        assert_eq!(result1.ranks, [0,1,2,0,2,1,0,0,0,1,0,0,0]);
+        assert_eq!(result1.ranks, [0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
         assert_eq!(result1.get_rank(2, true), Some(Rank::Four));
 
-        let holding_cards = [
-            Card::from("9s").unwrap(),
-            Card::from("3d").unwrap()
-        ];
+        let holding_cards = [Card::from("9s").unwrap(), Card::from("3d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result2.rank(), HandRank::TwoPair);
@@ -1007,18 +925,12 @@ mod tests {
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
 
-        let holding_cards = [
-            Card::from("Ks").unwrap(),
-            Card::from("Qc").unwrap()
-        ];
+        let holding_cards = [Card::from("Ks").unwrap(), Card::from("Qc").unwrap()];
         let holding1 = Holding::new(&holding_cards).unwrap();
         let result1 = HandResult::new(&holding1, &board, &texture);
         assert_eq!(result1.rank(), HandRank::TwoPair);
 
-        let holding_cards = [
-            Card::from("9d").unwrap(),
-            Card::from("3h").unwrap()
-        ];
+        let holding_cards = [Card::from("9d").unwrap(), Card::from("3h").unwrap()];
         let holding2 = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding2, &board, &texture);
         println!("{:#?}", board);
@@ -1040,18 +952,12 @@ mod tests {
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
 
-        let holding_cards = [
-            Card::from("Ts").unwrap(),
-            Card::from("5c").unwrap()
-        ];
+        let holding_cards = [Card::from("Ts").unwrap(), Card::from("5c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result1 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result1.rank(), HandRank::TwoPair);
 
-        let holding_cards = [
-            Card::from("Ad").unwrap(),
-            Card::from("3c").unwrap()
-        ];
+        let holding_cards = [Card::from("Ad").unwrap(), Card::from("3c").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result2.rank(), HandRank::TwoPair);
@@ -1063,10 +969,7 @@ mod tests {
     #[test]
     fn two_pairs_with_pocket_pairs() {
         // [Q♦ 5♠], [6♣ 6♦] | T❤ 8♣ 8♠ | K♣ | 4♠	[6♣ 6♦] wins with Pair
-        let holding_cards = [
-            Card::from("6c").unwrap(),
-            Card::from("6d").unwrap()
-        ];
+        let holding_cards = [Card::from("6c").unwrap(), Card::from("6d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -1088,10 +991,7 @@ mod tests {
     #[test]
     fn trips_runner_runner() {
         // [T♦ 8♣], [9♠ 5♦] | 2♠ 4♦ T♣ | 9❤ | 9♦	[9♠ 5♦] wins with FullHouse
-        let holding_cards = [
-            Card::from("9s").unwrap(),
-            Card::from("5d").unwrap()
-        ];
+        let holding_cards = [Card::from("9s").unwrap(), Card::from("5d").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
 
         let board_cards = [
@@ -1116,4 +1016,3 @@ mod tests {
         assert_eq!(std::mem::size_of::<HandResult>(), 160);
     }
 }
-

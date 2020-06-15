@@ -2,7 +2,6 @@ use crate::board::*;
 use crate::deck::*;
 use crate::holding::*;
 
-
 /// A Hand takes a with a `Deck` and is dealt for 9-max players.
 pub struct Hand<'a> {
     /// well - the `Deck` of cards
@@ -15,7 +14,6 @@ pub struct Hand<'a> {
 
 impl<'a> Hand<'a> {
     pub fn new(deck: &'a Deck, players: usize) -> Self {
-
         let mut holdings = [None, None, None, None, None, None, None, None, None];
         let mut offset: usize = 0;
 

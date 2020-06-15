@@ -39,13 +39,13 @@ impl<'a> Board<'a> {
 
     /// Process the Flop
     pub fn with_flop(&mut self) -> Self {
-
         for card in &self.cards[..3] {
             self.ranks[card.rank as usize] += 1;
             self.suits[card.suit as usize] += 1;
-        };
+        }
 
-        Board { cards: self.cards,
+        Board {
+            cards: self.cards,
             ranks: self.ranks,
             suits: self.suits,
             flop_dealt: true,
@@ -82,7 +82,7 @@ impl<'a> Board<'a> {
             suits: self.suits,
             flop_dealt: self.flop_dealt,
             turn_dealt: self.turn_dealt,
-            river_dealt: true
+            river_dealt: true,
         }
     }
 
@@ -117,12 +117,12 @@ impl<'a> Board<'a> {
         &self.cards[4]
     }
 
-    /// Returns a tuple of `Option<Rank>` for a paired board. Note that we might have two 
+    /// Returns a tuple of `Option<Rank>` for a paired board. Note that we might have two
     pub fn pairs(&self) -> [Option<Rank>; 2] {
         let mut pairs = [None, None];
         for (idx, rank) in self.ranks.iter().enumerate() {
             if *rank == 2 && pairs[0].is_none() {
-                 pairs[0] = Some(Rank::from(idx));
+                pairs[0] = Some(Rank::from(idx));
             } else if *rank == 2 {
                 pairs[1] = Some(Rank::from(idx));
             }
@@ -134,7 +134,6 @@ impl<'a> Board<'a> {
         BoardTexture::new(&self)
     }
 }
-
 
 /// Meta Data to minimize processing of the internal `Board.ranks` and `Board.suits`. It's meant to
 /// provide the basic _texture_ of the `Board` to the caller (mostly `HandResult`) for further
@@ -164,7 +163,6 @@ pub struct BoardTexture {
 }
 
 impl BoardTexture {
-
     /// pre-process a `Board` and return its `BoardTexture`. This improves evaluation speed for N
     /// `Holdings`
     pub fn new(board: &Board) -> Self {
@@ -190,7 +188,7 @@ impl BoardTexture {
                 }
                 3 => has_trips = true,
                 4 => has_quads = true,
-                _ => continue
+                _ => continue,
             }
         }
 
@@ -212,7 +210,7 @@ impl BoardTexture {
                     has_flush = true;
                     is_rainbow = false;
                 }
-                _ => continue
+                _ => continue,
             }
         }
 
@@ -231,7 +229,6 @@ impl BoardTexture {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -245,7 +242,14 @@ mod tests {
         // -  flop: A K Q
         // -  turn: J
         // - river: T
-        assert_eq!(board.flop(), [Card::from("Ac").unwrap(),Card::from("Kc").unwrap(),Card::from("Qc").unwrap()]);
+        assert_eq!(
+            board.flop(),
+            [
+                Card::from("Ac").unwrap(),
+                Card::from("Kc").unwrap(),
+                Card::from("Qc").unwrap()
+            ]
+        );
         assert_eq!(board.turn(), &Card::from("Jc").unwrap());
         assert_eq!(board.river(), &Card::from("Tc").unwrap());
 

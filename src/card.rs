@@ -91,7 +91,7 @@ impl From<usize> for Rank {
             10 => Rank::Queen,
             11 => Rank::King,
             12 => Rank::Ace,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }
@@ -103,7 +103,7 @@ impl From<usize> for Suit {
             1 => Suit::Spades,
             2 => Suit::Hearts,
             3 => Suit::Diamonds,
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 }

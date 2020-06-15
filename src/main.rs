@@ -1,7 +1,6 @@
 use pkr::prelude::*;
 
 fn main() {
-
     for _ in 0..100 {
         let deck = Deck::new();
         let mut hand = Hand::new(&deck, 2);
@@ -47,15 +46,7 @@ fn main() {
         } else {
             println!(
                 "{}, {} | {} {} {} | {} | {}\t ¯\\_(ツ)_/¯ {:?} vs. {:?}",
-                hero,
-                vilan,
-                flop[0],
-                flop[1],
-                flop[2],
-                turn,
-                river,
-                hero_rank,
-                vilan_rank
+                hero, vilan, flop[0], flop[1], flop[2], turn, river, hero_rank, vilan_rank
             );
         }
     }

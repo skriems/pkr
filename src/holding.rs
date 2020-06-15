@@ -131,36 +131,24 @@ mod tests {
     #[test]
     fn new() {
         // same Rank, different Suit
-        let cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let cards = [Card::from("Ac").unwrap(), Card::from("As").unwrap()];
         assert!(Holding::new(&cards).is_ok());
         assert_eq!(Holding::new(&cards).unwrap(), Holding { cards: &cards });
 
         // different Rank, suited
-        let cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
+        let cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
         assert!(Holding::new(&cards).is_ok());
         assert_eq!(Holding::new(&cards).unwrap(), Holding { cards: &cards });
 
         // same Rank, suited
-        let cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
+        let cards = [Card::from("Ac").unwrap(), Card::from("Ac").unwrap()];
         assert!(Holding::new(&cards).is_err());
     }
 
     #[test]
     fn high_card() {
         // AK -> &A
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
         let holding = Holding::new(&first_cards).unwrap();
         assert_eq!(holding.high_card(), &Card::from("Ac").unwrap());
     }
@@ -168,10 +156,7 @@ mod tests {
     #[test]
     fn low_card() {
         // AK -> &K
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
         let holding = Holding::new(&first_cards).unwrap();
         assert_eq!(holding.low_card(), &Card::from("Kc").unwrap());
     }
@@ -179,238 +164,136 @@ mod tests {
     #[test]
     fn beats() {
         // two overcards: AK vs QJ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Qs").unwrap(),
-            Card::from("Js").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("Qs").unwrap(), Card::from("Js").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // two overcards: KA vs QJ
-        let first_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Qs").unwrap(),
-            Card::from("Js").unwrap(),
-        ];
+        let first_cards = [Card::from("Kc").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("Qs").unwrap(), Card::from("Js").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // two overcards: AK vs JQ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Js").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("Js").unwrap(), Card::from("Qs").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // better kicker: AK vs AQ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Qs").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // better kicker: KA vs AQ
-        let first_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let first_cards = [Card::from("Kc").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Qs").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // better kicker: AK vs QA
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Qs").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("Qs").unwrap(), Card::from("As").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // better kicker: KA vs QA
-        let first_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Qs").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let first_cards = [Card::from("Kc").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("Qs").unwrap(), Card::from("As").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // AK vs AK
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Kd").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Kd").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), false);
 
         // KA vs AK
-        let first_cards = [
-            Card::from("Ks").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Kd").unwrap(),
-        ];
+        let first_cards = [Card::from("Ks").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Kd").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), false);
 
         // AK vs KA
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
+        let second_cards = [Card::from("Kd").unwrap(), Card::from("As").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), false);
 
         // KA vs KA
-        let first_cards = [
-            Card::from("Ks").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let first_cards = [Card::from("Ks").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("Kd").unwrap(), Card::from("As").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), false);
 
         // AJ vs KQ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Js").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Js").unwrap()];
+        let second_cards = [Card::from("Kd").unwrap(), Card::from("Qs").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // J7 vs T8
-        let first_cards = [
-            Card::from("Js").unwrap(),
-            Card::from("7c").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Td").unwrap(),
-            Card::from("8s").unwrap(),
-        ];
+        let first_cards = [Card::from("Js").unwrap(), Card::from("7c").unwrap()];
+        let second_cards = [Card::from("Td").unwrap(), Card::from("8s").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // 55 vs AK
-        let first_cards = [
-            Card::from("5s").unwrap(),
-            Card::from("5c").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Ad").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let first_cards = [Card::from("5s").unwrap(), Card::from("5c").unwrap()];
+        let second_cards = [Card::from("Ad").unwrap(), Card::from("Ks").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // 55 vs 44
-        let first_cards = [
-            Card::from("5s").unwrap(),
-            Card::from("5c").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("4d").unwrap(),
-            Card::from("4s").unwrap(),
-        ];
+        let first_cards = [Card::from("5s").unwrap(), Card::from("5c").unwrap()];
+        let second_cards = [Card::from("4d").unwrap(), Card::from("4s").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), true);
 
         // 55 vs 55
-        let first_cards = [
-            Card::from("5s").unwrap(),
-            Card::from("5c").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("5d").unwrap(),
-            Card::from("5s").unwrap(),
-        ];
+        let first_cards = [Card::from("5s").unwrap(), Card::from("5c").unwrap()];
+        let second_cards = [Card::from("5d").unwrap(), Card::from("5s").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.beats(&other), false);
 
         // AK vs 55
-        let first_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("5d").unwrap(),
-            Card::from("5s").unwrap(),
-        ];
+        let first_cards = [Card::from("As").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("5d").unwrap(), Card::from("5s").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
@@ -420,98 +303,56 @@ mod tests {
     #[test]
     fn pairs() {
         // AK vs AK
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Ks").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), true);
 
         // KA vs AK
-        let first_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let first_cards = [Card::from("Kc").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Ks").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), true);
 
         // AK vs KA
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Ks").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("Ks").unwrap(), Card::from("As").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), true);
 
         // KA vs KA
-        let first_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Ks").unwrap(),
-            Card::from("As").unwrap(),
-        ];
+        let first_cards = [Card::from("Kc").unwrap(), Card::from("Ac").unwrap()];
+        let second_cards = [Card::from("Ks").unwrap(), Card::from("As").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), true);
 
         // AK vs AQ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Qs").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), false);
 
         // 87 vs 87
-        let first_cards = [
-            Card::from("8c").unwrap(),
-            Card::from("7c").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("8s").unwrap(),
-            Card::from("7s").unwrap(),
-        ];
+        let first_cards = [Card::from("8c").unwrap(), Card::from("7c").unwrap()];
+        let second_cards = [Card::from("8s").unwrap(), Card::from("7s").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
         assert_eq!(holding.pairs(&other), true);
 
         // 55 vs 55
-        let first_cards = [
-            Card::from("5s").unwrap(),
-            Card::from("5c").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("4d").unwrap(),
-            Card::from("4s").unwrap(),
-        ];
+        let first_cards = [Card::from("5s").unwrap(), Card::from("5c").unwrap()];
+        let second_cards = [Card::from("4d").unwrap(), Card::from("4s").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
@@ -521,14 +362,8 @@ mod tests {
     #[test]
     fn looses() {
         // 44 vs 55
-        let first_cards = [
-            Card::from("4d").unwrap(),
-            Card::from("4s").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("5s").unwrap(),
-            Card::from("5c").unwrap(),
-        ];
+        let first_cards = [Card::from("4d").unwrap(), Card::from("4s").unwrap()];
+        let second_cards = [Card::from("5s").unwrap(), Card::from("5c").unwrap()];
 
         let holding = Holding::new(&first_cards).unwrap();
         let other = Holding::new(&second_cards).unwrap();
@@ -538,14 +373,8 @@ mod tests {
     #[test]
     fn partial_eq() {
         // Aces
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("As").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("As").unwrap()];
+        let second_cards = [Card::from("As").unwrap(), Card::from("Ac").unwrap()];
 
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
@@ -553,14 +382,8 @@ mod tests {
         assert_eq!(first, second);
 
         // AK's
-        let first_cards = [
-            Card::from("Ah").unwrap(),
-            Card::from("Kd").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Kd").unwrap(),
-            Card::from("Ah").unwrap(),
-        ];
+        let first_cards = [Card::from("Ah").unwrap(), Card::from("Kd").unwrap()];
+        let second_cards = [Card::from("Kd").unwrap(), Card::from("Ah").unwrap()];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
 
@@ -570,14 +393,8 @@ mod tests {
     #[test]
     fn partial_ne() {
         // AK vs AQ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Qd").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
+        let second_cards = [Card::from("Ac").unwrap(), Card::from("Qd").unwrap()];
 
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
@@ -587,42 +404,24 @@ mod tests {
     #[test]
     fn partial_ord() {
         // Aces vs Kings
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("As").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Kc").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("As").unwrap()];
+        let second_cards = [Card::from("Kc").unwrap(), Card::from("Ks").unwrap()];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
 
         assert!(first > second);
 
         // AK vs AQ
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
+        let second_cards = [Card::from("Ac").unwrap(), Card::from("Qs").unwrap()];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
 
         assert!(first > second);
 
         // AQ vs AK
-        let first_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
-        let second_cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let first_cards = [Card::from("Ac").unwrap(), Card::from("Qs").unwrap()];
+        let second_cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
         let first = Holding::new(&first_cards).unwrap();
         let second = Holding::new(&second_cards).unwrap();
 
@@ -632,19 +431,13 @@ mod tests {
     #[test]
     fn is_suited() {
         // AK
-        let cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let cards = [Card::from("As").unwrap(), Card::from("Ks").unwrap()];
         let holding = Holding::new(&cards).unwrap();
 
         assert_eq!(holding.is_suited(), true);
 
         // AK
-        let cards = [
-            Card::from("As").unwrap(),
-            Card::from("Kc").unwrap(),
-        ];
+        let cards = [Card::from("As").unwrap(), Card::from("Kc").unwrap()];
         let holding = Holding::new(&cards).unwrap();
 
         assert_eq!(holding.is_suited(), false);
@@ -653,19 +446,13 @@ mod tests {
     #[test]
     fn is_connected() {
         // AK
-        let cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
         let holding = Holding::new(&cards).unwrap();
 
         assert_eq!(holding.is_connected(), true);
 
         // AQ
-        let cards = [
-            Card::from("Ac").unwrap(),
-            Card::from("Qs").unwrap(),
-        ];
+        let cards = [Card::from("Ac").unwrap(), Card::from("Qs").unwrap()];
 
         let holding = Holding::new(&cards).unwrap();
         assert_eq!(holding.is_connected(), false);
@@ -674,19 +461,13 @@ mod tests {
     #[test]
     fn is_pocket_pair() {
         // AA
-        let cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
+        let cards = [Card::from("As").unwrap(), Card::from("Ac").unwrap()];
         let holding = Holding::new(&cards).unwrap();
 
         assert_eq!(holding.is_pocket_pair(), true);
 
         // AK
-        let cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ks").unwrap(),
-        ];
+        let cards = [Card::from("As").unwrap(), Card::from("Ks").unwrap()];
         let holding = Holding::new(&cards).unwrap();
 
         assert_eq!(holding.is_pocket_pair(), false);
@@ -695,20 +476,14 @@ mod tests {
     #[test]
     fn contains() {
         // AA
-        let cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ac").unwrap(),
-        ];
+        let cards = [Card::from("As").unwrap(), Card::from("Ac").unwrap()];
         let card = Card::from("Ad").unwrap();
 
         let holding = Holding::new(&cards).unwrap();
         assert_eq!(holding.cards.contains(&card), true);
 
         // 66
-        let cards = [
-            Card::from("6s").unwrap(),
-            Card::from("6c").unwrap(),
-        ];
+        let cards = [Card::from("6s").unwrap(), Card::from("6c").unwrap()];
         let card = Card::from("6d").unwrap();
 
         let holding = Holding::new(&cards).unwrap();
