@@ -27,7 +27,7 @@ pub struct HandResult<'a> {
     /// the `Board`
     board: &'a Board<'a>,
     /// the precalculated `BoardTexture`, so we do not need to process it for each `Holding`
-    texture: &'a BoardTexture<'a>,
+    texture: &'a BoardTexture,
     /// Array of 13 usize for each respective `Rank`
     pub ranks: [usize; 13],
     /// similar to the `Board` we store the holding cards `Suits` in an usize array

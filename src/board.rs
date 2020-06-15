@@ -140,7 +140,7 @@ impl<'a> Board<'a> {
 /// provide the basic _texture_ of the `Board` to the caller (mostly `HandResult`) for further
 /// processing which needs to happen only once for N `Holdings`.
 #[derive(Debug)]
-pub struct BoardTexture<'a> {
+pub struct BoardTexture {
     /// `true` as long as there no more than one `Suit` each
     pub is_rainbow: bool,
     /// has _one_ pair
@@ -161,17 +161,13 @@ pub struct BoardTexture<'a> {
     pub flush_with_one: bool,
     /// `true` if we have quads on the board
     pub has_quads: bool,
-    /// HighCard despite possible pairs on the `Board`
-    pub high_card: &'a Card,
-    /// sum of `Ranks`
-    pub sum_ranks: usize,
 }
 
-impl<'a> BoardTexture<'a> {
+impl BoardTexture {
 
     /// pre-process a `Board` and return its `BoardTexture`. This improves evaluation speed for N
     /// `Holdings`
-    pub fn new(board: &'a Board) -> Self {
+    pub fn new(board: &Board) -> Self {
         let mut is_rainbow = true;
         let mut is_paired = false;
         let mut has_pairs = false;
@@ -182,14 +178,8 @@ impl<'a> BoardTexture<'a> {
         let mut flush_with_suited = false;
         let mut flush_with_one = false;
         let mut has_quads = false;
-        let mut sum_ranks = 0;
 
-        for (rank, amount) in board.ranks.iter().enumerate() {
-            // the index determines the card rank here
-            if amount > &0 {
-                sum_ranks += rank;
-            }
-
+        for amount in board.ranks.iter() {
             match amount {
                 2 => {
                     if is_paired {
@@ -226,28 +216,6 @@ impl<'a> BoardTexture<'a> {
             }
         }
 
-        let mut high_card = &board.cards[0];
-
-        if board.river_dealt {
-            for card in &board.cards[..5] {
-                if  card >= high_card && !BoardTexture::in_pairs(card, board) || BoardTexture::in_pairs(high_card, board) {
-                    high_card = card;
-                }
-            }
-        } else if board.turn_dealt {
-            for card in &board.cards[..4] {
-                if card >= high_card && !BoardTexture::in_pairs(card, board) || BoardTexture::in_pairs(high_card, board) {
-                    high_card = card;
-                }
-            }
-        } else if board.flop_dealt {
-            for card in &board.cards[..3] {
-                if card >= high_card && !BoardTexture::in_pairs(card, board) || BoardTexture::in_pairs(high_card, board) {
-                    high_card = card;
-                }
-            }
-        }
-
         BoardTexture {
             is_rainbow,
             is_paired,
@@ -259,21 +227,7 @@ impl<'a> BoardTexture<'a> {
             flush_with_suited,
             flush_with_one,
             has_quads,
-            high_card,
-            sum_ranks,
         }
-    }
-
-    /// static method to check whether a given card belongs to a Pair on the board
-    fn in_pairs(card: &Card, board: &Board) -> bool {
-        for opt_rank in board.pairs().iter() {
-            if let Some(rank) = opt_rank {
-                if &card.rank == rank {
-                    return true;
-                }
-            }
-        }
-        false
     }
 }
 
@@ -320,43 +274,8 @@ mod tests {
     }
 
     #[test]
-    fn high_card() {
-        let deck = Deck::default();
-        let board = Board::new(&deck.cards[1..4]).with_flop();
-        let texture = board.texture();
-        println!("{:?}", board);
-        println!("{:#?}", texture);
-        assert_eq!(texture.high_card, &Card::from("Kc").unwrap());
-
-        let board_cards = [
-            Card::from("Th").unwrap(),
-            Card::from("8c").unwrap(),
-            Card::from("8s").unwrap(),
-        ];
-        let board = Board::new(&board_cards).with_flop();
-        let texture = board.texture();
-        assert_eq!(texture.high_card, &Card::from("Th").unwrap());
-
-        // cards from a pair are not considered as HighCard
-        let board_cards = [
-            Card::from("As").unwrap(),
-            Card::from("Ad").unwrap(),
-            Card::from("Tc").unwrap(),
-            Card::from("5h").unwrap(),
-            Card::from("9d").unwrap(),
-        ];
-        let board = Board::new(&board_cards).full();
-        let texture = board.texture();
-        println!("{:#?}", board);
-        println!("{:#?}", board.texture());
-        println!("board.pairs: {:#?}", board.pairs());
-        println!("BoardTexture::in_pairs: {:#?}", BoardTexture::in_pairs(&board.cards[2], &board));
-        assert_eq!(texture.high_card, &Card::from("Tc").unwrap())
-    }
-
-    #[test]
     fn mem() {
         assert_eq!(std::mem::size_of::<Board>(), 160);
-        assert_eq!(std::mem::size_of::<BoardTexture>(), 32);
+        assert_eq!(std::mem::size_of::<BoardTexture>(), 10);
     }
 }
