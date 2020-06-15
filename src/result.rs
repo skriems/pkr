@@ -82,13 +82,11 @@ impl<'a> HandResult<'a> {
     pub fn suit_rank(&self, suit: Suit) -> usize {
         let mut rank_sum = 0;
         let mut i = 0;
-        for (idx, num) in self.ranks.iter().rev().enumerate() {
-            if *num == 1 {
-                let card = Card::new(Rank::from(12 - idx), suit);
-                if self.holding.cards.contains(&card) || self.board.cards().contains(&card) {
-                    rank_sum += card.rank as usize;
-                    i += num;
-                }
+        for (idx, _num) in self.ranks.iter().rev().enumerate() {
+            let card = Card::new(Rank::from(12 - idx), suit);
+            if self.holding.cards.contains(&card) || self.board.cards().contains(&card) {
+                rank_sum += card.rank as usize;
+                i += 1;
             }
             if i == 4 {
                 break;
@@ -857,6 +855,60 @@ mod tests {
         assert_eq!(result1.rank(), HandRank::Flush(Suit::Hearts));
         assert_eq!(result1.suit_rank(Suit::Hearts), 39);
         assert_eq!(result2.rank(), HandRank::Flush(Suit::Hearts));
+        assert_eq!(result2.suit_rank(Suit::Hearts), 38);
+        assert_eq!(result1 > result2, true);
+
+        // [3♠ 2♣], [A♦ A♠] | 4♠ Q♠ J♠ | 7♣ | 9♠	¯\_(ツ)_/¯ Flush(Spades) vs. Flush(Spades)
+        let board_cards = [
+            Card::from("4s").unwrap(),
+            Card::from("Qs").unwrap(),
+            Card::from("Js").unwrap(),
+            Card::from("7c").unwrap(),
+            Card::from("9s").unwrap(),
+        ];
+
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+        let holding_cards = [Card::from("3s").unwrap(), Card::from("2c").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result1 = HandResult::new(&holding, &board, &texture);
+
+        let holding_cards = [Card::from("Ad").unwrap(), Card::from("As").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result2 = HandResult::new(&holding, &board, &texture);
+
+        assert_eq!(result1.rank(), HandRank::Flush(Suit::Spades));
+        assert_eq!(result1.ranks, [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0]);
+        assert_eq!(result1.suit_rank(Suit::Hearts), 31);
+        assert_eq!(result2.rank(), HandRank::Flush(Suit::Spades));
+        assert_eq!(result2.ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
+        assert_eq!(result2.suit_rank(Suit::Hearts), 38);
+        assert_eq!(result1 < result2, true);
+
+        // [K♠ 2♣], [Q♠ A♣ ] | 4♠ J♠ A♠ | 7♣ | 9♠	¯\_(ツ)_/¯ Flush(Spades) vs. Flush(Spades)
+        let board_cards = [
+            Card::from("4s").unwrap(),
+            Card::from("Js").unwrap(),
+            Card::from("As").unwrap(),
+            Card::from("7c").unwrap(),
+            Card::from("9s").unwrap(),
+        ];
+
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+        let holding_cards = [Card::from("Ks").unwrap(), Card::from("2c").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result1 = HandResult::new(&holding, &board, &texture);
+
+        let holding_cards = [Card::from("Qs").unwrap(), Card::from("Ac").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result2 = HandResult::new(&holding, &board, &texture);
+
+        assert_eq!(result1.rank(), HandRank::Flush(Suit::Spades));
+        assert_eq!(result1.ranks, [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1]);
+        assert_eq!(result1.suit_rank(Suit::Hearts), 39);
+        assert_eq!(result2.rank(), HandRank::Flush(Suit::Spades));
+        assert_eq!(result2.ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
         assert_eq!(result2.suit_rank(Suit::Hearts), 38);
         assert_eq!(result1 > result2, true);
     }
