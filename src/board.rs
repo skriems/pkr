@@ -10,9 +10,9 @@ pub struct Board<'a> {
     /// Slice of Cards
     cards: &'a [Card],
     /// Array of 13 usize for each respective `Rank`
-    pub ranks: [usize; 13],
-    /// Array of 4 usize for each respective `Suit`
-    pub suits: [usize; 4],
+    pub ranks: [[usize; 4]; 13],
+    pub num_ranks: [usize; 13],
+    pub num_suits: [usize; 4],
     /// If the flop has been dealt
     pub flop_dealt: bool,
     /// If the turn card has been dealt
@@ -24,13 +24,30 @@ pub struct Board<'a> {
 impl<'a> Board<'a> {
     /// create a new `Board` with `Cards`
     pub fn new(cards: &'a [Card]) -> Self {
-        let ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let suits = [0, 0, 0, 0];
+        let ranks = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ];
+
+        let num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let num_suits = [0, 0, 0, 0];
 
         Board {
             cards,
             ranks,
-            suits,
+            num_ranks,
+            num_suits,
             flop_dealt: false,
             turn_dealt: false,
             river_dealt: false,
@@ -40,14 +57,18 @@ impl<'a> Board<'a> {
     /// Process the Flop
     pub fn with_flop(&mut self) -> Self {
         for card in &self.cards[..3] {
-            self.ranks[card.rank as usize] += 1;
-            self.suits[card.suit as usize] += 1;
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            self.ranks[rank][suit] = 1;
+            self.num_ranks[rank] += 1;
+            self.num_suits[suit] += 1;
         }
 
         Board {
             cards: self.cards,
             ranks: self.ranks,
-            suits: self.suits,
+            num_ranks: self.num_ranks,
+            num_suits: self.num_suits,
             flop_dealt: true,
             turn_dealt: false,
             river_dealt: false,
@@ -57,13 +78,17 @@ impl<'a> Board<'a> {
     /// Process the Turn
     pub fn with_turn(&mut self) -> Self {
         let turn = &self.cards[3];
-        self.ranks[turn.rank as usize] += 1;
-        self.suits[turn.suit as usize] += 1;
+        let rank = turn.rank as usize;
+        let suit = turn.suit as usize;
+        self.ranks[rank][suit] = 1;
+        self.num_ranks[rank] += 1;
+        self.num_suits[suit] += 1;
 
         Board {
             cards: self.cards,
             ranks: self.ranks,
-            suits: self.suits,
+            num_ranks: self.num_ranks,
+            num_suits: self.num_suits,
             flop_dealt: self.flop_dealt,
             turn_dealt: true,
             river_dealt: false,
@@ -73,13 +98,17 @@ impl<'a> Board<'a> {
     /// Process the River
     pub fn with_river(&mut self) -> Self {
         let river = &self.cards[4];
-        self.ranks[river.rank as usize] += 1;
-        self.suits[river.suit as usize] += 1;
+        let rank = river.rank as usize;
+        let suit = river.suit as usize;
+        self.ranks[rank][suit] = 1;
+        self.num_ranks[rank] += 1;
+        self.num_suits[suit] += 1;
 
         Board {
             cards: self.cards,
             ranks: self.ranks,
-            suits: self.suits,
+            num_ranks: self.num_ranks,
+            num_suits: self.num_suits,
             flop_dealt: self.flop_dealt,
             turn_dealt: self.turn_dealt,
             river_dealt: true,
@@ -120,7 +149,7 @@ impl<'a> Board<'a> {
     /// Returns a tuple of `Option<Rank>` for a paired board. Note that we might have two
     pub fn pairs(&self) -> [Option<Rank>; 2] {
         let mut pairs = [None, None];
-        for (idx, rank) in self.ranks.iter().enumerate() {
+        for (idx, rank) in self.num_ranks.iter().enumerate() {
             if *rank == 2 && pairs[0].is_none() {
                 pairs[0] = Some(Rank::from(idx));
             } else if *rank == 2 {
@@ -179,7 +208,7 @@ impl BoardTexture {
         let mut last_idx = 0;
         let mut connected = 0;
 
-        for (idx, amount) in board.ranks.iter().enumerate() {
+        for (idx, amount) in board.num_ranks.iter().enumerate() {
             match amount {
                 1 => {
                     if idx > 0 && last_idx != idx - 1 {
@@ -206,7 +235,7 @@ impl BoardTexture {
             straight_high = Some(Rank::from(last_idx));
         }
 
-        for suit in board.suits.iter() {
+        for suit in board.num_suits.iter() {
             match suit {
                 2 => {
                     flush_draw = true;
@@ -268,15 +297,15 @@ mod tests {
         assert_eq!(board.river(), &Card::from("Tc").unwrap());
 
         let expected_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1];
-        assert_eq!(board.ranks, expected_ranks);
+        assert_eq!(board.num_ranks, expected_ranks);
         let expected_suits = [5, 0, 0, 0];
-        assert_eq!(board.suits, expected_suits);
+        assert_eq!(board.num_suits, expected_suits);
 
-        assert_eq!(board.ranks[Rank::Ace as usize], 1);
-        assert_eq!(board.ranks[Rank::King as usize], 1);
-        assert_eq!(board.ranks[Rank::Queen as usize], 1);
-        assert_eq!(board.ranks[Rank::Jack as usize], 1);
-        assert_eq!(board.ranks[Rank::Ten as usize], 1);
+        assert_eq!(board.num_ranks[Rank::Ace as usize], 1);
+        assert_eq!(board.num_ranks[Rank::King as usize], 1);
+        assert_eq!(board.num_ranks[Rank::Queen as usize], 1);
+        assert_eq!(board.num_ranks[Rank::Jack as usize], 1);
+        assert_eq!(board.num_ranks[Rank::Ten as usize], 1);
     }
 
     #[test]
@@ -284,9 +313,9 @@ mod tests {
         let deck = Deck::default();
         let board = Board::new(&deck.cards).full();
         let expected_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1];
-        assert_eq!(board.ranks, expected_ranks);
+        assert_eq!(board.num_ranks, expected_ranks);
         let expected_suits = [5, 0, 0, 0];
-        assert_eq!(board.suits, expected_suits);
+        assert_eq!(board.num_suits, expected_suits);
         let texture = board.texture();
         assert_eq!(texture.has_flush, true);
     }

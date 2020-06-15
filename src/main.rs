@@ -1,7 +1,7 @@
 use pkr::prelude::*;
 
 fn main() {
-    for _ in 0..100 {
+    for _ in 0..1000000 {
         let deck = Deck::new();
         let mut hand = Hand::new(&deck, 2);
         let board = hand.board.full();
@@ -30,24 +30,24 @@ fn main() {
             winner_rank = Some(&vilan_rank);
         }
 
-        if let Some(player) = winner {
-            println!(
-                "{}, {} | {} {} {} | {} | {}\t{} wins with {:?}",
-                hero,
-                vilan,
-                flop[0],
-                flop[1],
-                flop[2],
-                turn,
-                river,
-                player,
-                winner_rank.unwrap()
-            );
-        } else {
-            println!(
-                "{}, {} | {} {} {} | {} | {}\t ¯\\_(ツ)_/¯ {:?} vs. {:?}",
-                hero, vilan, flop[0], flop[1], flop[2], turn, river, hero_rank, vilan_rank
-            );
-        }
+        // if let Some(player) = winner {
+        //     println!(
+        //         "{}, {} | {} {} {} | {} | {}\t{} wins with {:?}",
+        //         hero,
+        //         vilan,
+        //         flop[0],
+        //         flop[1],
+        //         flop[2],
+        //         turn,
+        //         river,
+        //         player,
+        //         winner_rank.unwrap()
+        //     );
+        // } else {
+        //     println!(
+        //         "{}, {} | {} {} {} | {} | {}\t ¯\\_(ツ)_/¯ {:?} vs. {:?}",
+        //         hero, vilan, flop[0], flop[1], flop[2], turn, river, hero_rank, vilan_rank
+        //     );
+        // }
     }
 }

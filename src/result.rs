@@ -29,18 +29,23 @@ pub struct HandResult<'a> {
     /// the precalculated `BoardTexture`, so we do not need to process it for each `Holding`
     texture: &'a BoardTexture,
     /// Array of 13 usize for each respective `Rank`
-    pub ranks: [usize; 13],
-    /// similar to the `Board` we store the holding cards `Suits` in an usize array
-    suits: [usize; 4],
+    pub ranks: [[usize; 4]; 13],
+    pub num_ranks: [usize; 13],
+    pub num_suits: [usize; 4],
 }
 
 impl<'a> HandResult<'a> {
     pub fn new(holding: &'a Holding, board: &'a Board, texture: &'a BoardTexture) -> Self {
         let mut ranks = board.ranks;
-        let mut suits = board.suits;
+        let mut num_ranks = board.num_ranks;
+        let mut num_suits = board.num_suits;
+
         for card in holding.cards {
-            ranks[card.rank as usize] += 1;
-            suits[card.suit as usize] += 1;
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks[rank][suit] = 1;
+            num_ranks[rank] += 1;
+            num_suits[suit] += 1;
         }
 
         HandResult {
@@ -48,7 +53,8 @@ impl<'a> HandResult<'a> {
             board,
             texture,
             ranks,
-            suits,
+            num_ranks,
+            num_suits,
         }
     }
 
@@ -56,7 +62,7 @@ impl<'a> HandResult<'a> {
     pub fn high_cards(&self, amount: usize) -> usize {
         let mut rank_sum = 0;
         let mut i = 0;
-        for (idx, num) in self.ranks.iter().rev().enumerate() {
+        for (idx, num) in self.num_ranks.iter().rev().enumerate() {
             if *num == 1 {
                 rank_sum += 12 - idx;
                 i += num;
@@ -70,7 +76,7 @@ impl<'a> HandResult<'a> {
 
     /// Return the `Suit` for a given amount of Cards
     pub fn suits_on_board(&self, amount: usize) -> Option<Suit> {
-        for (idx, num) in self.board.suits.iter().enumerate() {
+        for (idx, num) in self.board.num_suits.iter().enumerate() {
             if *num >= amount {
                 return Some(Suit::from(idx));
             }
@@ -82,7 +88,7 @@ impl<'a> HandResult<'a> {
     pub fn suit_rank(&self, suit: Suit) -> usize {
         let mut rank_sum = 0;
         let mut i = 0;
-        for (idx, _num) in self.ranks.iter().rev().enumerate() {
+        for (idx, _num) in self.num_ranks.iter().rev().enumerate() {
             let card = Card::new(Rank::from(12 - idx), suit);
             if self.holding.cards.contains(&card) || self.board.cards().contains(&card) {
                 rank_sum += card.rank as usize;
@@ -97,7 +103,7 @@ impl<'a> HandResult<'a> {
 
     /// Returns the `Rank` for a given amount of Cards
     pub fn get_rank(&self, amount: usize, skip_first: bool) -> Option<Rank> {
-        get_rank(&self.ranks, amount, skip_first)
+        get_rank(&self.num_ranks, amount, skip_first)
     }
 
     /// check whether we have a straight
@@ -105,7 +111,7 @@ impl<'a> HandResult<'a> {
         let mut last_idx = 0;
         let mut connected = 0;
 
-        for (idx, amount) in self.ranks.iter().enumerate() {
+        for (idx, amount) in self.num_ranks.iter().enumerate() {
             if *amount > 0 {
                 if idx > 0 && last_idx != idx - 1 {
                     connected = 0;
@@ -139,7 +145,7 @@ impl<'a> HandResult<'a> {
         let is_pocket_pair = self.holding.is_pocket_pair();
 
         if self.texture.has_trips {
-            if let Some(rank) = get_rank(&self.board.ranks, 3, false) {
+            if let Some(rank) = get_rank(&self.board.num_ranks, 3, false) {
                 // we can use an arbitrary suit here,
                 // because `PartialEq` in `contains`
                 // only checks the rank
@@ -425,13 +431,13 @@ mod tests {
             Card::from("2h").unwrap(),
         ];
         let board = Board::new(&board_cards).full();
-        assert_eq!(board.ranks, [1, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1]);
+        assert_eq!(board.num_ranks, [1, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1]);
         let texture = board.texture();
         let result = HandResult::new(&holding, &board, &texture);
         assert_eq!(result.rank(), HandRank::Pair);
-        assert_eq!(result.ranks, [1, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 1, 1]);
+        assert_eq!(result.num_ranks, [1, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 1, 1]);
         assert_eq!(result.get_rank(2, false), Some(Rank::Eight));
-        assert_eq!(board.ranks, [1, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1]);
+        assert_eq!(board.num_ranks, [1, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1]);
     }
 
     #[test]
@@ -560,8 +566,8 @@ mod tests {
         let holding = Holding::new(&holding_cards).unwrap();
         let result2 = HandResult::new(&holding, &board, &texture);
 
-        println!("get_rank: {:?}", get_rank(&result1.ranks, 2, false));
-        println!("get_rank: {:?}", get_rank(&result2.ranks, 2, false));
+        println!("get_rank: {:?}", get_rank(&result1.num_ranks, 2, false));
+        println!("get_rank: {:?}", get_rank(&result2.num_ranks, 2, false));
         println!("ranks: {:?}", result1.ranks);
         println!("ranks: {:?}", result2.ranks);
         println!("high_cards: {:?}", result1.high_cards(3));
@@ -625,7 +631,7 @@ mod tests {
         let result1 = HandResult::new(&holding, &board, &texture);
         assert_eq!(result1.rank(), HandRank::TwoPair);
         assert_eq!(result1.get_rank(2, false), Some(Rank::Six));
-        assert_eq!(result1.ranks, [0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
+        assert_eq!(result1.num_ranks, [0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
         assert_eq!(result1.get_rank(2, true), Some(Rank::Four));
 
         let holding_cards = [Card::from("9s").unwrap(), Card::from("3d").unwrap()];
@@ -1069,10 +1075,10 @@ mod tests {
         let result2 = HandResult::new(&holding, &board, &texture);
 
         assert_eq!(result1.rank(), HandRank::Flush(Suit::Spades));
-        assert_eq!(result1.ranks, [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0]);
+        assert_eq!(result1.num_ranks, [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0]);
         assert_eq!(result1.suit_rank(Suit::Hearts), 31);
         assert_eq!(result2.rank(), HandRank::Flush(Suit::Spades));
-        assert_eq!(result2.ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
+        assert_eq!(result2.num_ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
         assert_eq!(result2.suit_rank(Suit::Hearts), 38);
         assert_eq!(result1 < result2, true);
 
@@ -1096,10 +1102,10 @@ mod tests {
         let result2 = HandResult::new(&holding, &board, &texture);
 
         assert_eq!(result1.rank(), HandRank::Flush(Suit::Spades));
-        assert_eq!(result1.ranks, [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1]);
+        assert_eq!(result1.num_ranks, [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1]);
         assert_eq!(result1.suit_rank(Suit::Hearts), 39);
         assert_eq!(result2.rank(), HandRank::Flush(Suit::Spades));
-        assert_eq!(result2.ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
+        assert_eq!(result2.num_ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
         assert_eq!(result2.suit_rank(Suit::Hearts), 38);
         assert_eq!(result1 > result2, true);
     }
