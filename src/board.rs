@@ -148,8 +148,8 @@ pub struct BoardTexture {
     pub has_pairs: bool,
     /// has trips
     pub has_trips: bool,
-    /// has a streight
-    pub has_streight: bool,
+    /// straight high card
+    pub straight_high: Option<Rank>,
     /// `true` if we have five cards of the same `Suit`
     pub has_flush: bool,
     /// `true` if we have at least two cards of same `Suit`
@@ -170,15 +170,25 @@ impl BoardTexture {
         let mut is_paired = false;
         let mut has_pairs = false;
         let mut has_trips = false;
-        let mut has_streight = false;
         let mut has_flush = false;
         let mut flush_draw = false;
         let mut flush_with_suited = false;
         let mut flush_with_one = false;
         let mut has_quads = false;
 
-        for amount in board.ranks.iter() {
+        let mut last_idx = 0;
+        let mut connected = 0;
+
+        println!("{:?}", &board.ranks);
+        for (idx, amount) in board.ranks.iter().enumerate() {
             match amount {
+                1 => {
+                    if idx > 0 && last_idx != idx - 1 {
+                        connected = 0;
+                    }
+                    connected += 1;
+                    last_idx = idx;
+                }
                 2 => {
                     if is_paired {
                         has_pairs = true;
@@ -190,6 +200,11 @@ impl BoardTexture {
                 4 => has_quads = true,
                 _ => continue,
             }
+        }
+
+        let mut straight_high = None;
+        if connected == 5 {
+            straight_high = Some(Rank::from(last_idx));
         }
 
         for suit in board.suits.iter() {
@@ -219,7 +234,7 @@ impl BoardTexture {
             is_paired,
             has_pairs,
             has_trips,
-            has_streight,
+            straight_high,
             has_flush,
             flush_draw,
             flush_with_suited,
@@ -275,6 +290,20 @@ mod tests {
         assert_eq!(board.suits, expected_suits);
         let texture = board.texture();
         assert_eq!(texture.has_flush, true);
+    }
+
+    #[test]
+    fn texture_has_straight() {
+        let board_cards = [
+            Card::from("Jd").unwrap(),
+            Card::from("Ts").unwrap(),
+            Card::from("9d").unwrap(),
+            Card::from("8c").unwrap(),
+            Card::from("7h").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+        assert_eq!(texture.straight_high, Some(Rank::Jack));
     }
 
     #[test]
