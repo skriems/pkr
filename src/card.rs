@@ -75,7 +75,6 @@ impl Card {
     }
 }
 
-// TODO tests
 impl From<usize> for Rank {
     fn from(n: usize) -> Self {
         match n {
@@ -97,7 +96,6 @@ impl From<usize> for Rank {
     }
 }
 
-// TODO tests
 impl From<usize> for Suit {
     fn from(n: usize) -> Self {
         match n {
@@ -167,6 +165,31 @@ impl fmt::Display for Card {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn suit_from() {
+        assert_eq!(Suit::from(0), Suit::Clubs);
+        assert_eq!(Suit::from(1), Suit::Spades);
+        assert_eq!(Suit::from(2), Suit::Hearts);
+        assert_eq!(Suit::from(3), Suit::Diamonds);
+    }
+
+    #[test]
+    fn rank_from() {
+        assert_eq!(Rank::from(0), Rank::Two);
+        assert_eq!(Rank::from(1), Rank::Three);
+        assert_eq!(Rank::from(2), Rank::Four);
+        assert_eq!(Rank::from(3), Rank::Five);
+        assert_eq!(Rank::from(4), Rank::Six);
+        assert_eq!(Rank::from(5), Rank::Seven);
+        assert_eq!(Rank::from(6), Rank::Eight);
+        assert_eq!(Rank::from(7), Rank::Nine);
+        assert_eq!(Rank::from(8), Rank::Ten);
+        assert_eq!(Rank::from(9), Rank::Jack);
+        assert_eq!(Rank::from(10), Rank::Queen);
+        assert_eq!(Rank::from(11), Rank::King);
+        assert_eq!(Rank::from(12), Rank::Ace);
+    }
 
     #[test]
     fn from_expr() {

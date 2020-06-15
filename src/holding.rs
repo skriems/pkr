@@ -63,6 +63,10 @@ impl<'a> Holding<'a> {
         let res = self.cards[0].rank as u32 - self.cards[1].rank as u32;
         res * res == 1
     }
+
+    pub fn sum_ranks(&self) -> usize {
+        self.cards[0].rank as usize + self.cards[1].rank as usize
+    }
 }
 
 impl<'a> Beats for Holding<'a> {
