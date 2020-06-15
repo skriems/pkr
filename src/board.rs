@@ -172,23 +172,23 @@ pub struct BoardTexture {
     /// `true` as long as there no more than one `Suit` each
     pub is_rainbow: bool,
     /// has _one_ pair
-    pub is_paired: bool,
+    pub pair: Option<Rank>,
     /// has _two_ pairs
-    pub has_pairs: bool,
+    pub pairs: Option<(Rank, Rank)>,
     /// has trips
-    pub has_trips: bool,
+    pub trips: Option<Rank>,
     /// straight high card
-    pub straight_high: Option<Rank>,
+    pub straight: Option<Rank>,
     /// `true` if we have five cards of the same `Suit`
-    pub has_flush: bool,
+    pub flush: Option<Suit>, // TODO: Rank
     /// `true` if we have at least two cards of same `Suit`
-    pub flush_draw: bool,
+    pub flush_draw: Option<Suit>,
     /// `true` if we have a least three cards of same `Suit`
-    pub flush_with_suited: bool,
+    pub flush_with_suited: Option<Suit>,
     /// `true` if we have a least four cards of same `Suit`
-    pub flush_with_one: bool,
+    pub flush_with_one: Option<Suit>,
     /// `true` if we have quads on the board
-    pub has_quads: bool,
+    pub quads: Option<Rank>,
 }
 
 impl BoardTexture {
@@ -196,61 +196,66 @@ impl BoardTexture {
     /// `Holdings`
     pub fn new(board: &Board) -> Self {
         let mut is_rainbow = true;
-        let mut is_paired = false;
-        let mut has_pairs = false;
-        let mut has_trips = false;
-        let mut has_flush = false;
-        let mut flush_draw = false;
-        let mut flush_with_suited = false;
-        let mut flush_with_one = false;
-        let mut has_quads = false;
+        let mut pair = None;
+        let mut pairs = None;
+        let mut trips = None;
+        let mut flush = None;
+        let mut flush_draw = None;
+        let mut flush_with_suited = None;
+        let mut flush_with_one = None;
+        let mut quads = None;
 
-        let mut last_idx = 0;
+        let mut last_rank = 0;
         let mut connected = 0;
 
-        for (idx, amount) in board.num_ranks.iter().enumerate() {
+        for (rank, amount) in board.num_ranks.iter().enumerate() {
             match amount {
+                0 => continue,
                 1 => {
-                    if idx > 0 && last_idx != idx - 1 {
+                    // Straight Algorhythm
+                    if rank > 0 && last_rank != rank - 1 {
                         connected = 0;
                     }
                     connected += 1;
-                    last_idx = idx;
+                    last_rank = rank;
                 }
                 2 => {
-                    if is_paired {
-                        has_pairs = true;
+                    if let Some(p) = pair {
+                        pairs = Some((p, Rank::from(rank)));
                     } else {
-                        is_paired = true;
+                        pair = Some(Rank::from(rank));
                     }
                 }
-                3 => has_trips = true,
-                4 => has_quads = true,
-                _ => continue,
+                3 => trips = Some(Rank::from(rank)),
+                4 => quads = Some(Rank::from(rank)),
+                _ => unreachable!(),
             }
         }
 
-        let mut straight_high = None;
+        let mut straight = None;
         if connected == 5 {
-            straight_high = Some(Rank::from(last_idx));
+            straight = Some(Rank::from(last_rank));
         }
 
-        for suit in board.num_suits.iter() {
+        for (idx, suit) in board.num_suits.iter().enumerate() {
             match suit {
                 2 => {
-                    flush_draw = true;
+                    flush_draw = Some(Suit::from(idx));
                     is_rainbow = false;
                 }
                 3 => {
-                    flush_with_suited = true;
+                    flush_with_suited = Some(Suit::from(idx));
                     is_rainbow = false;
                 }
                 4 => {
-                    flush_with_one = true;
+                    flush_with_suited = Some(Suit::from(idx));
+                    flush_with_one = Some(Suit::from(idx));
                     is_rainbow = false;
                 }
                 5 => {
-                    has_flush = true;
+                    flush_with_suited = Some(Suit::from(idx));
+                    flush_with_one = Some(Suit::from(idx));
+                    flush = Some(Suit::from(idx));
                     is_rainbow = false;
                 }
                 _ => continue,
@@ -259,15 +264,15 @@ impl BoardTexture {
 
         BoardTexture {
             is_rainbow,
-            is_paired,
-            has_pairs,
-            has_trips,
-            straight_high,
-            has_flush,
+            pair,
+            pairs,
+            trips,
+            straight,
+            flush,
             flush_draw,
             flush_with_suited,
             flush_with_one,
-            has_quads,
+            quads,
         }
     }
 }
@@ -317,7 +322,7 @@ mod tests {
         let expected_suits = [5, 0, 0, 0];
         assert_eq!(board.num_suits, expected_suits);
         let texture = board.texture();
-        assert_eq!(texture.has_flush, true);
+        assert_eq!(texture.flush, Some(Suit::Clubs));
     }
 
     #[test]
@@ -331,12 +336,12 @@ mod tests {
         ];
         let board = Board::new(&board_cards).full();
         let texture = board.texture();
-        assert_eq!(texture.straight_high, Some(Rank::Jack));
+        assert_eq!(texture.straight, Some(Rank::Jack));
     }
 
     #[test]
     fn mem() {
-        assert_eq!(std::mem::size_of::<Board>(), 160);
-        assert_eq!(std::mem::size_of::<BoardTexture>(), 10);
+        assert_eq!(std::mem::size_of::<Board>(), 576);
+        assert_eq!(std::mem::size_of::<BoardTexture>(), 11);
     }
 }

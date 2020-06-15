@@ -65,6 +65,6 @@ mod tests {
 
     #[test]
     fn mem() {
-        assert_eq!(std::mem::size_of::<Hand>(), 312);
+        assert_eq!(std::mem::size_of::<Hand>(), 728);
     }
 }
