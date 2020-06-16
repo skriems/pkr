@@ -14,7 +14,7 @@ pub enum HandRank {
     Flush(Suit),
     FullHouse,
     Quads(Rank),
-    StraightFlush(Rank, Suit),
+    StraightFlush(Rank),
     RoyalFlush,
 }
 
@@ -126,7 +126,7 @@ impl<'a> HandResult<'a> {
         None
     }
 
-    pub fn rank(&self) -> HandRank {
+    pub fn rank_old(&self) -> HandRank {
         if let Some(rank) = self.texture.quads {
             return HandRank::Quads(rank);
         }
@@ -284,6 +284,57 @@ impl<'a> HandResult<'a> {
 
         HandRank::HighCard
     }
+
+    pub fn rank(&self) -> HandRank {
+        // Straights
+        let mut straight_high = 0;
+        let mut last_idx = 0;
+        let mut connected = 0;
+
+        let mut observed_suits: [usize; 4] = [0, 0, 0, 0];
+
+        // iterating over the num_ranks array
+        for (idx, amount) in self.num_ranks.iter().rev().enumerate() {
+            if *amount == 0 {
+                continue;
+            }
+            // Straight:
+            // whereever we start the first observation of a particular card
+            // connected is set to Zero and straight_high to the idx position
+            if idx > 0 && last_idx != idx - 1 {
+                connected = 0;
+                straight_high = idx;
+            } else if idx == 1 {
+                // special case for King
+                straight_high = idx;
+            }
+            connected += 1;
+            last_idx = idx;
+
+            if connected == 5 {
+                // Straight or even StraightFlush
+                for rank in 7 - straight_high..13 - straight_high {
+                    for (suit, num) in self.ranks[rank].iter().enumerate() {
+                        observed_suits[suit] += num;
+                    }
+                }
+                for num_suit in observed_suits.iter() {
+                    if *num_suit == 5 {
+                        if straight_high == 0 {
+                            return HandRank::RoyalFlush;
+                        }
+                        return HandRank::StraightFlush(Rank::from(12 - straight_high));
+                    }
+                }
+                println!("ranks: {:?}", &self.num_ranks);
+                println!("obs suits: {:?}", &observed_suits);
+                println!("straight_high: {:?}", &straight_high);
+                return HandRank::Straight(Rank::from(12 - straight_high));
+            }
+        }
+
+        HandRank::HighCard
+    }
 }
 
 impl<'a> PartialEq for HandResult<'a> {
@@ -418,11 +469,11 @@ mod tests {
             true
         );
         assert_eq!(
-            HandRank::Quads(Rank::Four) < HandRank::StraightFlush(Rank::Ace, Suit::Clubs),
+            HandRank::Quads(Rank::Four) < HandRank::StraightFlush(Rank::Ace),
             true
         );
         assert_eq!(
-            HandRank::StraightFlush(Rank::Ace, Suit::Clubs) < HandRank::RoyalFlush,
+            HandRank::StraightFlush(Rank::Ace) < HandRank::RoyalFlush,
             true
         );
     }
@@ -898,6 +949,39 @@ mod tests {
     }
 
     #[test]
+    fn straights() {
+        let board_cards = [
+            Card::from("Jh").unwrap(),
+            Card::from("Ts").unwrap(),
+            Card::from("9d").unwrap(),
+            Card::from("3c").unwrap(),
+            Card::from("2h").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [Card::from("Qc").unwrap(), Card::from("8h").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result1 = HandResult::new(&holding, &board, &texture);
+        assert_eq!(result1.rank(), HandRank::Straight(Rank::Queen));
+
+        let board_cards = [
+            Card::from("8h").unwrap(),
+            Card::from("Ts").unwrap(),
+            Card::from("9d").unwrap(),
+            Card::from("3c").unwrap(),
+            Card::from("2h").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [Card::from("7c").unwrap(), Card::from("Jh").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result1 = HandResult::new(&holding, &board, &texture);
+        assert_eq!(result1.rank(), HandRank::Straight(Rank::Jack));
+    }
+
+    #[test]
     fn straight_and_flush() {
         let board_cards = [
             Card::from("Jh").unwrap(),
@@ -1158,15 +1242,13 @@ mod tests {
         let holding_cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
         let holding = Holding::new(&holding_cards).unwrap();
         let result = HandResult::new(&holding, &board, &texture);
-        assert_eq!(
-            result.rank(),
-            HandRank::StraightFlush(Rank::King, Suit::Clubs)
-        );
+        assert_eq!(result.rank(), HandRank::StraightFlush(Rank::King));
+        // assert_eq!(result.rank(), HandRank::StraightFlush(Rank::King));
     }
 
     #[test]
     fn mem() {
-        assert_eq!(std::mem::size_of::<HandRank>(), 3);
+        assert_eq!(std::mem::size_of::<HandRank>(), 2);
         assert_eq!(std::mem::size_of::<HandResult>(), 576);
     }
 }
