@@ -44,29 +44,6 @@ impl<'a> Holding<'a> {
     pub fn is_pocket_pair(&self) -> bool {
         self.cards[0].pairs(&self.cards[1])
     }
-
-    pub fn is_suited(&self) -> bool {
-        self.cards[0].suit == self.cards[1].suit
-    }
-
-    /// two cards are connected when the product of the difference of their respective
-    /// enum discriminants is 1:
-    ///
-    /// connected:
-    ///     Rank::Ace(12) - Rank::King(11) == 1
-    ///     Rank::King(11) - Rank::Ace(12) == -1    <- hence product is needed
-    ///
-    /// not connected:
-    ///     Rank::Ace(12) - Rank::Queen(10) == 2
-    ///     Rank::Queen(10) - Rank::Ace(12) == -2
-    pub fn is_connected(&self) -> bool {
-        let res = self.cards[0].rank as u32 - self.cards[1].rank as u32;
-        res * res == 1
-    }
-
-    pub fn sum_ranks(&self) -> usize {
-        self.cards[0].rank as usize + self.cards[1].rank as usize
-    }
 }
 
 impl<'a> Beats for Holding<'a> {
@@ -426,36 +403,6 @@ mod tests {
         let second = Holding::new(&second_cards).unwrap();
 
         assert!(first < second);
-    }
-
-    #[test]
-    fn is_suited() {
-        // AK
-        let cards = [Card::from("As").unwrap(), Card::from("Ks").unwrap()];
-        let holding = Holding::new(&cards).unwrap();
-
-        assert_eq!(holding.is_suited(), true);
-
-        // AK
-        let cards = [Card::from("As").unwrap(), Card::from("Kc").unwrap()];
-        let holding = Holding::new(&cards).unwrap();
-
-        assert_eq!(holding.is_suited(), false);
-    }
-
-    #[test]
-    fn is_connected() {
-        // AK
-        let cards = [Card::from("Ac").unwrap(), Card::from("Ks").unwrap()];
-        let holding = Holding::new(&cards).unwrap();
-
-        assert_eq!(holding.is_connected(), true);
-
-        // AQ
-        let cards = [Card::from("Ac").unwrap(), Card::from("Qs").unwrap()];
-
-        let holding = Holding::new(&cards).unwrap();
-        assert_eq!(holding.is_connected(), false);
     }
 
     #[test]
