@@ -35,7 +35,7 @@ fn main() {
 
         if let Some(rank) = win_rank {
             println!(
-                "{}, {} | {} {} {} | {} | {}\t\t{}\t wins with {:?} over {:?}",
+                "{}, {} | {} {} {} | {} | {}\t\t{}\twins\t{:?} over {:?}",
                 hero,
                 vilan,
                 flop[0],
