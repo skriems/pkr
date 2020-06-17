@@ -111,7 +111,7 @@ impl From<usize> for Suit {
 /// Determine the rank equality for a Card despite its Suit
 impl PartialEq for Card {
     fn eq(&self, other: &Self) -> bool {
-        self.rank == other.rank
+        self.rank == other.rank && self.suit == other.suit
     }
 }
 
@@ -508,14 +508,8 @@ mod tests {
 
     #[test]
     fn partial_ne() {
-        assert_eq!(
-            Card::new(Rank::Ace, Suit::Clubs) != Card::new(Rank::Ace, Suit::Diamonds),
-            false
-        );
-        assert_eq!(
-            Card::new(Rank::Ace, Suit::Clubs) != Card::new(Rank::King, Suit::Diamonds),
-            true
-        );
+        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::Ace, Suit::Diamonds));
+        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::King, Suit::Diamonds));
     }
 
     #[test]
