@@ -1093,6 +1093,21 @@ mod tests {
         let holding = Holding::new(&holding_cards).unwrap();
         let result = HandResult::new(&holding, &board, &texture);
         assert_eq!(result.rank(), HandRank::RoyalFlush);
+
+        let board_cards = [
+            Card::from("Qs").unwrap(),
+            Card::from("Jc").unwrap(),
+            Card::from("Tc").unwrap(),
+            Card::from("3c").unwrap(),
+            Card::from("Jc").unwrap(),
+        ];
+        let board = Board::new(&board_cards).full();
+        let texture = board.texture();
+
+        let holding_cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+        let holding = Holding::new(&holding_cards).unwrap();
+        let result = HandResult::new(&holding, &board, &texture);
+        assert_eq!(result.rank(), HandRank::Straight(Rank::Ace));
     }
 
     #[test]
