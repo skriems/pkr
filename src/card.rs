@@ -3,7 +3,7 @@ use crate::Beats;
 use std::fmt;
 
 /// Suit
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Suit {
     Clubs,
     Spades,
@@ -12,7 +12,7 @@ pub enum Suit {
 }
 
 /// Rank
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Rank {
     Two,
     Three,
@@ -30,7 +30,7 @@ pub enum Rank {
 }
 
 /// Card
-#[derive(Copy, Clone, Debug, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialOrd)]
 pub struct Card {
     pub rank: Rank,
     pub suit: Suit,
@@ -508,8 +508,14 @@ mod tests {
 
     #[test]
     fn partial_ne() {
-        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::Ace, Suit::Diamonds));
-        assert_ne!(Card::new(Rank::Ace, Suit::Clubs), Card::new(Rank::King, Suit::Diamonds));
+        assert_ne!(
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Diamonds)
+        );
+        assert_ne!(
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::King, Suit::Diamonds)
+        );
     }
 
     #[test]
