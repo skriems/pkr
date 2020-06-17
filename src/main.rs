@@ -4,9 +4,36 @@ use pkr::error::{Error, Result};
 use std::env;
 use itertools::Itertools;
 
+fn print_split(hero: &HandResult, vilan: &HandResult) {
+    let flop = hero.board.flop();
+    let turn = hero.board.turn();
+    let river = hero.board.river();
 
-// fn handle_result<'a>(hero: &'a Holding, vilan: &'a Holding, benchmark: bool) -> Option<(&'a Holding<'a>, HandResult)> {
-// }
+    println!(
+        "{}, {} | {} {} {} | {} | {} ¯\\_(ツ)_/¯[split]\t{:?} vs. {:?}",
+        hero.holding, vilan.holding, flop[0], flop[1], flop[2], turn, river, hero.hand_rank, vilan.hand_rank
+    );
+}
+
+fn print_result(winner: &HandResult, looser: &HandResult) {
+    let flop = winner.board.flop();
+    let turn = winner.board.turn();
+    let river = winner.board.river();
+
+    println!(
+        "{}, {} | {} {} {} | {} | {}\t\t{}\twins\t{:?} over {:?}",
+        winner.holding,
+        looser.holding,
+        flop[0],
+        flop[1],
+        flop[2],
+        turn,
+        river,
+        winner.holding,
+        winner.hand_rank,
+        looser.hand_rank,
+    );
+}
 
 fn rnd(num: usize, benchmark: bool) {
     for _ in 0..num {
@@ -15,50 +42,23 @@ fn rnd(num: usize, benchmark: bool) {
         let board = hand.board.full();
         let texture = board.texture();
 
-        let hero = hand.get_player(1).as_ref().unwrap();
-        let vilan = hand.get_player(2).as_ref().unwrap();
+        let hero_holding = hand.get_player(1).as_ref().unwrap();
+        let vilan_holding = hand.get_player(2).as_ref().unwrap();
 
-        let hero_result = HandResult::new(hero, &board, &texture);
-        let vilan_result = HandResult::new(vilan, &board, &texture);
-
-        let mut winner: &Holding = hero;
-        let mut win_rank: Option<&HandRank> = None;
-        let mut looser: Option<&HandRank> = None;
+        let hero = HandResult::new(hero_holding, &board, &texture);
+        let vilan = HandResult::new(vilan_holding, &board, &texture);
 
         if hero > vilan {
-            winner = hero;
-            win_rank = Some(&hero_result.hand_rank);
-            looser = Some(&vilan_result.hand_rank);
+            if !benchmark {
+                print_result(&hero, &vilan);
+            }
         } else if hero < vilan {
-            winner = vilan;
-            win_rank = Some(&vilan_result.hand_rank);
-            looser = Some(&hero_result.hand_rank);
-        }
-
-        if !benchmark {
-            let flop = board.flop();
-            let turn = board.turn();
-            let river = board.river();
-
-            if let Some(rank) = win_rank {
-                println!(
-                    "{}, {} | {} {} {} | {} | {}\t\t{}\twins\t{:?} over {:?}",
-                    hero,
-                    vilan,
-                    flop[0],
-                    flop[1],
-                    flop[2],
-                    turn,
-                    river,
-                    winner,
-                    rank,
-                    looser.unwrap(),
-                );
-            } else {
-                println!(
-                    "{}, {} | {} {} {} | {} | {} ¯\\_(ツ)_/¯[split]\t{:?} vs. {:?}",
-                    hero, vilan, flop[0], flop[1], flop[2], turn, river, hero_result.hand_rank, vilan_result.hand_rank
-                );
+            if !benchmark {
+                print_result(&vilan, &hero);
+            }
+        } else {
+            if !benchmark {
+                print_split(&hero, &vilan);
             }
         }
     }
@@ -68,17 +68,13 @@ fn get_args() -> Vec<String> {
     return env::args().collect();
 }
 
-fn two_player(args: &Vec<String>) -> Result<()> {
+fn two_player(args: &Vec<String>, benchmark: bool) -> Result<()> {
     if args.len() < 3 {
         return Err(Error::InvalidNumberOfArguments);
     }
 
     let arg1 = &args[1];
     let arg2 = &args[2];
-
-    if arg1.len() < 4 || arg2.len() < 4 {
-        return Err(Error::InvalidHolding);
-    }
 
     let hero_card1 = Card::from(&arg1[..2])?;
     let hero_card2 = Card::from(&arg1[2..])?;
@@ -113,61 +109,34 @@ fn two_player(args: &Vec<String>) -> Result<()> {
 
     for (n, cards) in combos.into_iter().enumerate() {
         num_combos = n;
-        let board = Board::new(&cards[..]).full();
+        let board = Board::new(&cards).full();
         let texture = board.texture();
 
-        let hero_result = HandResult::new(&hero_holding, &board, &texture);
-        let vilan_result = HandResult::new(&vilan_holding, &board, &texture);
+        let hero = HandResult::new(&hero_holding, &board, &texture);
+        let vilan = HandResult::new(&vilan_holding, &board, &texture);
 
-        let flop = board.flop();
-        let turn = board.turn();
-        let river = board.river();
-
-        let mut winner: &Holding = &hero_holding;
-        let mut win_rank: Option<&HandRank> = None;
-        let mut looser: Option<&HandRank> = None;
-
-        if hero_result > vilan_result {
+        if hero > vilan {
             hero_wins += 1.0;
-            winner = &hero_holding;
-            win_rank = Some(&hero_result.hand_rank);
-            looser = Some(&vilan_result.hand_rank);
-        } else if hero_result < vilan_result {
+
+            if !benchmark {
+                print_result(&hero, &vilan);
+            }
+        } else if hero < vilan {
             vilan_wins += 1.0;
-            winner = &vilan_holding;
-            win_rank = Some(&vilan_result.hand_rank);
-            looser = Some(&hero_result.hand_rank);
+
+            if !benchmark {
+                print_result(&vilan, &hero);
+            }
         } else {
             splits += 1.0;
+
+            if !benchmark {
+                print_split(&hero, &vilan);
+            }
         }
-
-        // if let Some(rank) = win_rank {
-        //     println!(
-        //         "{}, {} | {} {} {} | {} | {}\t\t{}\twins\t{:?} over {:?}",
-        //         hero_holding,
-        //         vilan_holding,
-        //         flop[0],
-        //         flop[1],
-        //         flop[2],
-        //         turn,
-        //         river,
-        //         winner,
-        //         rank,
-        //         looser.unwrap(),
-        //     );
-        // } else {
-        //     println!(
-        //         "{}, {} | {} {} {} | {} | {} ¯\\_(ツ)_/¯[split]\t{:?} vs. {:?}",
-        //         hero_holding, vilan_holding, flop[0], flop[1], flop[2], turn, river, hero_result.hand_rank, vilan_result.hand_rank
-        //     );
-        // }
-
-        // if n % 100000 == 0 && n > 0 {
-        //     println!("{}", ".");
-        // }
     }
 
-    println!("Number of combinations: {}", num_combos);
+    println!("-> evaluated {} combinations", num_combos);
     println!("hero {:.2?}%; vilan {:.2?}%; splits {:.2?}%", hero_wins * 100.0 / num_combos as f32, vilan_wins * 100.0 / num_combos as f32, splits * 100.0 / num_combos as f32);
     Ok(())
 }
@@ -197,7 +166,7 @@ fn main() {
                 rnd(num, false);
             }
         }
-        if let Err(e) = two_player(&args) {
+        if let Err(e) = two_player(&args, true) {
             println!("{:?}", e);
         };
     }

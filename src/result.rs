@@ -188,9 +188,9 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
 #[derive(Debug)]
 pub struct HandResult<'a> {
     /// holding cards for this `HandResult`
-    holding: &'a Holding<'a>,
+    pub holding: &'a Holding<'a>,
     /// the `Board`
-    board: &'a Board<'a>,
+    pub board: &'a Board<'a>,
     /// the precalculated `BoardTexture`, so we do not need to process it for each `Holding`
     texture: &'a BoardTexture,
     /// Array of 13 usize for each respective `Rank`
