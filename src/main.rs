@@ -57,25 +57,86 @@ fn rnd(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, iterations: usiz
     let mut splits = 0.0;
     let k = 5 - community_cards.len();
 
+    let ranks = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ];
+
+    let num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let num_suits = [0, 0, 0, 0];
+
     while num_combos < iterations {
         remaining.shuffle(&mut rng);
         let combo = &remaining[..k];
 
-        let hero_matrix = Matrix::with_slice(holdings[0], &community_cards, &combo);
-        let hero = HandResult::new(&hero_matrix);
+        let mut ranks1 = ranks;
+        let mut num_ranks1 = num_ranks;
+        let mut num_suits1 = num_suits;
+        let mut ranks2 = ranks;
+        let mut num_ranks2 = num_ranks;
+        let mut num_suits2 = num_suits;
 
-        let vilan_matrix = Matrix::with_slice(holdings[1], &community_cards, &combo);
-        let vilan = HandResult::new(&vilan_matrix);
+        for card in holdings[0] {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks1[rank][suit] = 1;
+            num_ranks1[rank] += 1;
+            num_suits1[suit] += 1;
+        }
+
+        for card in holdings[1] {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks2[rank][suit] = 1;
+            num_ranks2[rank] += 1;
+            num_suits2[suit] += 1;
+        }
+
+        for card in community_cards {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks1[rank][suit] = 1;
+            ranks2[rank][suit] = 1;
+            num_ranks1[rank] += 1;
+            num_ranks2[rank] += 1;
+            num_suits1[suit] += 1;
+            num_suits2[suit] += 1;
+        }
+
+        for card in combo.into_iter() {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks1[rank][suit] = 1;
+            ranks2[rank][suit] = 1;
+            num_ranks1[rank] += 1;
+            num_ranks2[rank] += 1;
+            num_suits1[suit] += 1;
+            num_suits2[suit] += 1;
+        }
+
+        let hero = HandResult::bare(&ranks1, &num_ranks1, &num_suits1);
+        let vilan = HandResult::bare(&ranks2, &num_ranks2, &num_suits2);
 
         if hero > vilan {
             hero_wins += 1.0;
             if !benchmark {
-                print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
+                // print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
             }
         } else if hero < vilan {
             vilan_wins += 1.0;
             if !benchmark {
-                print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
+                // print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
             }
         } else {
             splits += 1.0;
@@ -114,23 +175,84 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
     let mut splits = 0.0;
     let k = 5 - community_cards.len();
 
+    let ranks = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ];
+
+    let num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let num_suits = [0, 0, 0, 0];
+
     for combo in pool.iter().combinations(k) {
 
-        let hero_matrix = Matrix::with_combo(holdings[0], &community_cards, &combo);
-        let hero = HandResult::new(&hero_matrix);
+        let mut ranks1 = ranks;
+        let mut num_ranks1 = num_ranks;
+        let mut num_suits1 = num_suits;
+        let mut ranks2 = ranks;
+        let mut num_ranks2 = num_ranks;
+        let mut num_suits2 = num_suits;
 
-        let vilan_matrix = Matrix::with_combo(holdings[1], &community_cards, &combo);
-        let vilan = HandResult::new(&vilan_matrix);
+        for card in holdings[0] {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks1[rank][suit] = 1;
+            num_ranks1[rank] += 1;
+            num_suits1[suit] += 1;
+        }
+
+        for card in holdings[1] {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks2[rank][suit] = 1;
+            num_ranks2[rank] += 1;
+            num_suits2[suit] += 1;
+        }
+
+        for card in community_cards {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks1[rank][suit] = 1;
+            ranks2[rank][suit] = 1;
+            num_ranks1[rank] += 1;
+            num_ranks2[rank] += 1;
+            num_suits1[suit] += 1;
+            num_suits2[suit] += 1;
+        }
+
+        for card in &combo {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks1[rank][suit] = 1;
+            ranks2[rank][suit] = 1;
+            num_ranks1[rank] += 1;
+            num_ranks2[rank] += 1;
+            num_suits1[suit] += 1;
+            num_suits2[suit] += 1;
+        }
+
+        let hero = HandResult::bare(&ranks1, &num_ranks1, &num_suits1);
+        let vilan = HandResult::bare(&ranks2, &num_ranks2, &num_suits2);
 
         if hero > vilan {
             hero_wins += 1.0;
             if !benchmark {
-                print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
+                // print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
             }
         } else if hero < vilan {
             vilan_wins += 1.0;
             if !benchmark {
-                print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
+                // print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
             }
         } else {
             splits += 1.0;
