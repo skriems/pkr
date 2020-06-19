@@ -9,7 +9,7 @@ pub struct Matrix<'a> {
 }
 
 impl<'a> Matrix<'a> {
-    pub fn new(cards: &'a [Card], community_cards: &[Card], combo: &Vec<&&Card>) -> Self {
+    pub fn with_combo(cards: &'a [Card], community_cards: &[Card], combo: &Vec<&&Card>) -> Self {
         let mut ranks = [
             [0, 0, 0, 0],
             [0, 0, 0, 0],
@@ -46,6 +46,58 @@ impl<'a> Matrix<'a> {
         }
 
         for card in combo {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks[rank][suit] = 1;
+            num_ranks[rank] += 1;
+            num_suits[suit] += 1;
+        }
+
+        Matrix {
+            cards,
+            ranks,
+            num_ranks,
+            num_suits,
+        }
+    }
+
+    pub fn with_slice(cards: &'a [Card], community_cards: &[Card], slice: &[&Card]) -> Self {
+        let mut ranks = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ];
+
+        let mut num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let mut num_suits = [0, 0, 0, 0];
+
+        for card in cards {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks[rank][suit] = 1;
+            num_ranks[rank] += 1;
+            num_suits[suit] += 1;
+        }
+
+        for card in community_cards {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks[rank][suit] = 1;
+            num_ranks[rank] += 1;
+            num_suits[suit] += 1;
+        }
+
+        for card in slice {
             let rank = card.rank as usize;
             let suit = card.suit as usize;
             ranks[rank][suit] = 1;
@@ -400,7 +452,7 @@ mod tests {
         ];
         let combo = vec![];
 
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
 
         assert_eq!(result.hand_rank, HandRank::Pair(Rank::Eight));
@@ -421,7 +473,7 @@ mod tests {
             Card::from("Th").unwrap(),
             Card::from("9d").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::HighCard);
 
@@ -435,7 +487,7 @@ mod tests {
             Card::from("9s").unwrap(),
             Card::from("5c").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::HighCard);
 
@@ -448,7 +500,7 @@ mod tests {
             Card::from("Kd").unwrap(),
             Card::from("5d").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::HighCard);
     }
@@ -467,11 +519,11 @@ mod tests {
         ];
 
         let holding = [Card::from("Ad").unwrap(), Card::from("3c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
 
         let holding = [Card::from("Ah").unwrap(), Card::from("8c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
 
         assert_eq!(result1.hand_rank, HandRank::HighCard);
@@ -492,7 +544,7 @@ mod tests {
             Card::from("5d").unwrap(),
             Card::from("3c").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Pair(Rank::King));
     }
@@ -510,12 +562,12 @@ mod tests {
             Card::from("8c").unwrap(),
             Card::from("2h").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Pair(Rank::Eight));
 
         let holding = [Card::from("6s").unwrap(), Card::from("4h").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result2.hand_rank, HandRank::Pair(Rank::Eight));
         assert_eq!(result1 > result2, true);
@@ -535,7 +587,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Qc").unwrap(), Card::from("3d").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(
             result.hand_rank,
@@ -557,7 +609,7 @@ mod tests {
             Card::from("6s").unwrap(),
             Card::from("Kh").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::TwoPair(Rank::King, Rank::Three));
     }
@@ -574,13 +626,13 @@ mod tests {
             Card::from("3c").unwrap(),
         ];
         let holding = [Card::from("7c").unwrap(), Card::from("4d").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::TwoPair(Rank::Six, Rank::Four));
         assert_eq!(result1.num_ranks, [0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
 
         let holding = [Card::from("9s").unwrap(), Card::from("3d").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result2.hand_rank, HandRank::TwoPair(Rank::Six, Rank::Three));
 
@@ -597,7 +649,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Ks").unwrap(), Card::from("Qc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(
             result1.hand_rank,
@@ -605,7 +657,7 @@ mod tests {
         );
 
         let holding = [Card::from("9d").unwrap(), Card::from("3h").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result2.hand_rank, HandRank::TwoPair(Rank::Nine, Rank::Four));
 
@@ -622,12 +674,12 @@ mod tests {
         ];
 
         let holding = [Card::from("Ts").unwrap(), Card::from("5c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::TwoPair(Rank::Eight, Rank::Six));
 
         let holding = [Card::from("Ad").unwrap(), Card::from("3c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result2.hand_rank, HandRank::TwoPair(Rank::Ace, Rank::Eight));
         assert_eq!(result1.hand_rank > result2.hand_rank, false);
@@ -648,7 +700,7 @@ mod tests {
             Card::from("Kc").unwrap(),
             Card::from("4s").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::TwoPair(Rank::Eight, Rank::Six));
     }
@@ -666,7 +718,7 @@ mod tests {
             Card::from("9h").unwrap(),
             Card::from("9d").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Trips(Rank::Nine));
     }
@@ -684,7 +736,7 @@ mod tests {
             Card::from("9d").unwrap(),
             Card::from("Kh").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Trips(Rank::Nine));
     }
@@ -702,7 +754,7 @@ mod tests {
             Card::from("3d").unwrap(),
             Card::from("Kh").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Trips(Rank::Three));
     }
@@ -720,7 +772,7 @@ mod tests {
             Card::from("Tc").unwrap(),
             Card::from("Ad").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Trips(Rank::Ace));
     }
@@ -739,7 +791,7 @@ mod tests {
             Card::from("Ks").unwrap(),
         ];
 
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Trips(Rank::King));
     }
@@ -757,11 +809,11 @@ mod tests {
             Card::from("4h").unwrap(),
             Card::from("Ks").unwrap(),
         ];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
 
         let holding = [Card::from("9d").unwrap(), Card::from("7h").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
 
         assert_eq!(result1.hand_rank, HandRank::Trips(Rank::Six));
@@ -781,12 +833,12 @@ mod tests {
         ];
 
         let holding = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Straight(Rank::King));
 
         let holding = [Card::from("7c").unwrap(), Card::from("8c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result2.hand_rank, HandRank::Straight(Rank::Jack));
 
@@ -805,7 +857,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Qc").unwrap(), Card::from("8h").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Straight(Rank::Queen));
 
@@ -818,7 +870,7 @@ mod tests {
         ];
 
         let holding = [Card::from("7c").unwrap(), Card::from("Jh").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Straight(Rank::Jack));
     }
@@ -836,7 +888,7 @@ mod tests {
 
 
         let holding = [Card::from("4c").unwrap(), Card::from("5h").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Straight(Rank::Five));
     }
@@ -853,7 +905,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Flush(29));
     }
@@ -869,7 +921,7 @@ mod tests {
             Card::from("Kh").unwrap(),
         ];
         let holding = [Card::from("Qc").unwrap(), Card::from("Jc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::FullHouse(Rank::Ace, Rank::King));
     }
@@ -885,7 +937,7 @@ mod tests {
             Card::from("Jh").unwrap(),
         ];
         let holding = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::FullHouse(Rank::Ace, Rank::King));
     }
@@ -903,7 +955,7 @@ mod tests {
             Card::from("7s").unwrap(),
         ];
         let holding = [Card::from("Ad").unwrap(), Card::from("7d").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
 
         let result = HandResult::new(&matrix);
         assert_eq!(
@@ -924,7 +976,7 @@ mod tests {
             Card::from("5h").unwrap(),
         ];
         let holding = [Card::from("Jh").unwrap(), Card::from("5s").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
 
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::FullHouse(Rank::Five, Rank::Two));
@@ -943,7 +995,7 @@ mod tests {
             Card::from("Qd").unwrap(),
         ];
         let holding = [Card::from("8h").unwrap(), Card::from("8s").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(
             result.hand_rank,
@@ -962,12 +1014,12 @@ mod tests {
             Card::from("Jh").unwrap(),
         ];
         let holding = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Quads(Rank::Ace));
 
         let holding = [Card::from("Tc").unwrap(), Card::from("9c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result2.hand_rank, HandRank::Quads(Rank::Ace));
 
@@ -987,11 +1039,11 @@ mod tests {
         ];
 
         let holding = [Card::from("Jh").unwrap(), Card::from("7c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
 
         let holding = [Card::from("Th").unwrap(), Card::from("7c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::Flush(21));
         assert_eq!(result2.hand_rank, HandRank::Flush(20));
@@ -1007,11 +1059,11 @@ mod tests {
         ];
 
         let holding = [Card::from("3s").unwrap(), Card::from("2c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
 
         let holding = [Card::from("Ad").unwrap(), Card::from("As").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
 
         assert_eq!(result1.hand_rank, HandRank::Flush(19));
@@ -1030,11 +1082,11 @@ mod tests {
         ];
 
         let holding = [Card::from("Ks").unwrap(), Card::from("2c").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
 
         let holding = [Card::from("Qs").unwrap(), Card::from("Ac").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result2 = HandResult::new(&matrix);
 
         assert_eq!(result1.hand_rank, HandRank::Flush(32));
@@ -1057,7 +1109,7 @@ mod tests {
             Card::from("Ks").unwrap(),
         ];
         let holding = [Card::from("9d").unwrap(), Card::from("7h").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
 
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Flush(12));
@@ -1075,7 +1127,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::StraightFlush(Rank::King));
     }
@@ -1092,7 +1144,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::RoyalFlush);
 
@@ -1105,7 +1157,7 @@ mod tests {
         ];
 
         let holding = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
-        let matrix = Matrix::new(&holding, &community_cards, &combo);
+        let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result = HandResult::new(&matrix);
         assert_eq!(result.hand_rank, HandRank::Straight(Rank::Ace));
     }

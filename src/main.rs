@@ -1,7 +1,10 @@
 use pkr::prelude::*;
 
 use itertools::Itertools;
+use rand::rngs::ThreadRng;
+use rand::seq::SliceRandom;
 use std::env;
+use std::process;
 
 fn get_pool<'a>(cards: &'a Vec<Card>, dealt: &'a Vec<Card>) -> Vec<&'a Card> {
     cards
@@ -33,69 +36,65 @@ fn print_result(
     );
 }
 
-// TODO
-// fn rnd(num: usize, benchmark: bool) {
-//     for _ in 0..num {
-//         let deck = Deck::new();
-//         let mut hand = Hand::new(&deck, 2);
-//         let board = hand.board.full();
-//         let texture = board.texture();
+fn rnd(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, iterations: usize, benchmark: bool) {
+    let mut holdings: Vec<&[Card]> = vec![];
 
-//         let hero_holding = hand.get_player(1).as_ref().unwrap();
-//         let vilan_holding = hand.get_player(2).as_ref().unwrap();
+    for i in 0..num_players {
+        let start = i * 2;
+        holdings.push(&dealt[start..start + 2]);
+    }
 
-//         let hero = HandResult::new(hero_holding, &board, &texture);
-//         let vilan = HandResult::new(vilan_holding, &board, &texture);
+    let community_cards = &dealt[num_players * 2..];
 
-//         if hero > vilan {
-//             if !benchmark {
-//                 print_result(&hero, &vilan);
-//             }
-//         } else if hero < vilan {
-//             if !benchmark {
-//                 print_result(&vilan, &hero);
-//             }
-//         } else {
-//             if !benchmark {
-//                 print_split(&hero, &vilan);
-//             }
-//         }
-//     }
-// }
+    let mut remaining: Vec<&Card> = deck.iter().filter(|c| !dealt.contains(c)).collect();
 
-fn get_args() -> Vec<String> {
-    return env::args().collect();
+    let mut rng = ThreadRng::default();
+
+    // Stats
+    let mut num_combos = 0;
+    let mut hero_wins = 0.0;
+    let mut vilan_wins = 0.0;
+    let mut splits = 0.0;
+    let k = 5 - community_cards.len();
+
+    while num_combos < iterations {
+        remaining.shuffle(&mut rng);
+        let combo = &remaining[..k];
+
+        let hero_matrix = Matrix::with_slice(holdings[0], &community_cards, &combo);
+        let hero = HandResult::new(&hero_matrix);
+
+        let vilan_matrix = Matrix::with_slice(holdings[1], &community_cards, &combo);
+        let vilan = HandResult::new(&vilan_matrix);
+
+        if hero > vilan {
+            hero_wins += 1.0;
+            if !benchmark {
+                print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
+            }
+        } else if hero < vilan {
+            vilan_wins += 1.0;
+            if !benchmark {
+                print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
+            }
+        } else {
+            splits += 1.0;
+            // if !benchmark {
+            //     print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
+            // }
+        }
+        num_combos += 1;
+    }
+    println!("-> evaluated {} random hands", num_combos);
+    println!(
+        "hero {:.2?}%; vilan {:.2?}%; splits {:.2?}%",
+        hero_wins * 100.0 / num_combos as f32,
+        vilan_wins * 100.0 / num_combos as f32,
+        splits * 100.0 / num_combos as f32
+    );
 }
 
-fn get_cards(args: Vec<String>) -> Vec<Card> {
-    let mut dealt: Vec<Card> = vec![];
-
-    if args.len() > 1 {
-        dealt.push(Card::from(&args[1][..2]).unwrap());
-        dealt.push(Card::from(&args[1][2..]).unwrap());
-    }
-    if args.len() > 2 {
-        dealt.push(Card::from(&args[2][..2]).unwrap());
-        dealt.push(Card::from(&args[2][2..]).unwrap());
-    }
-    // Flop
-    if args.len() > 3 {
-        let arg = &args[3];
-        if arg.len() >= 2 {
-            dealt.push(Card::from(&args[3][..2]).unwrap());
-        }
-        if arg.len() >= 4 {
-            dealt.push(Card::from(&args[3][2..4]).unwrap());
-        }
-        if arg.len() == 6 {
-            dealt.push(Card::from(&args[3][4..]).unwrap());
-        }
-    }
-    dealt
-}
-
-
-fn run(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bool) {
+fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bool) {
 
     let mut holdings: Vec<&[Card]> = vec![];
 
@@ -117,10 +116,10 @@ fn run(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bool)
 
     for combo in pool.iter().combinations(k) {
 
-        let hero_matrix = Matrix::new(holdings[0], &community_cards, &combo);
+        let hero_matrix = Matrix::with_combo(holdings[0], &community_cards, &combo);
         let hero = HandResult::new(&hero_matrix);
 
-        let vilan_matrix = Matrix::new(holdings[1], &community_cards, &combo);
+        let vilan_matrix = Matrix::with_combo(holdings[1], &community_cards, &combo);
         let vilan = HandResult::new(&vilan_matrix);
 
         if hero > vilan {
@@ -150,8 +149,46 @@ fn run(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bool)
     );
 }
 
+fn get_cards(args: &[String]) -> Vec<Card> {
+
+    let mut dealt: Vec<Card> = vec![];
+
+    if args.len() > 1 {
+        dealt.push(Card::from(&args[1][..2]).unwrap());
+        dealt.push(Card::from(&args[1][2..]).unwrap());
+    }
+    if args.len() > 2 {
+        dealt.push(Card::from(&args[2][..2]).unwrap());
+        dealt.push(Card::from(&args[2][2..]).unwrap());
+    }
+    // Flop
+    if args.len() > 3 {
+        let arg = &args[3];
+        if arg.len() >= 2 {
+            dealt.push(Card::from(&args[3][..2]).unwrap());
+        }
+        if arg.len() >= 4 {
+            dealt.push(Card::from(&args[3][2..4]).unwrap());
+        }
+        if arg.len() == 6 {
+            dealt.push(Card::from(&args[3][4..]).unwrap());
+        }
+    }
+    dealt
+}
+
+fn print_usage() {
+    println!("usage: <cmd> [NUM_ITERATIONS] <Holding> <Holding> [COMMUNITY_CARDS..]");
+}
+
 fn main() {
-    let cards = vec![
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 4 {
+        print_usage();
+        process::exit(1);
+    }
+
+    let deck = vec![
         Card::new(Rank::Ace, Suit::Clubs),
         Card::new(Rank::King, Suit::Clubs),
         Card::new(Rank::Queen, Suit::Clubs),
@@ -206,7 +243,16 @@ fn main() {
         Card::new(Rank::Two, Suit::Diamonds),
     ];
 
-    let args = get_args();
-    let dealt = get_cards(args);
-    run(&cards, &dealt, 2, true);
+    let cmd = &args[1];
+    if cmd == "eval" {
+        let dealt = get_cards(&args[1..]);
+        combos(&deck, &dealt, 2, true);
+    } else if cmd == "rnd" {
+        if let Ok(iterations) = &args[2].parse::<usize>() {
+            let dealt = get_cards(&args[2..]);
+            rnd(&deck, &dealt, 2, *iterations, true);
+        } else {
+            print_usage();
+        }
+    }
 }
