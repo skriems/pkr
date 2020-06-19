@@ -307,38 +307,49 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
 
 /// Hand rank
 #[derive(Debug)]
-pub struct HandResult {
-    pub ranks: [[usize; 4]; 13],
-    pub num_ranks: [usize; 13],
-    pub num_suits: [usize; 4],
+pub struct HandResult<'a> {
+    pub ranks: &'a [[usize; 4]; 13],
+    pub num_ranks: &'a [usize; 13],
+    pub num_suits: &'a [usize; 4],
     pub hand_rank: HandRank,
 }
 
-impl HandResult {
-    pub fn new(matrix: &Matrix) -> Self {
+impl<'a> HandResult<'a> {
+    pub fn new(matrix: &'a Matrix) -> Self {
         let hand_rank = rank(&matrix.ranks, &matrix.num_ranks, &matrix.num_suits);
 
         HandResult {
-            ranks: matrix.ranks,
-            num_ranks: matrix.num_ranks,
-            num_suits: matrix.num_suits,
+            ranks: &matrix.ranks,
+            num_ranks: &matrix.num_ranks,
+            num_suits: &matrix.num_suits,
+            hand_rank,
+        }
+    }
+
+    pub fn bare(ranks: &'a [[usize; 4]; 13], num_ranks: &'a [usize; 13], num_suits: &'a [usize; 4]) -> Self {
+        let hand_rank = rank(&ranks, &num_ranks, &num_suits);
+
+        HandResult {
+            ranks,
+            num_ranks,
+            num_suits,
             hand_rank,
         }
     }
 
     /// return the sum of `Ranks` for a given `amount` of HighCards
     pub fn high_cards(&self, amount: usize) -> usize {
-        high_cards(self.num_ranks, amount)
+        high_cards(*self.num_ranks, amount)
     }
 }
 
-impl PartialEq for HandResult {
+impl<'a> PartialEq for HandResult<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.high_cards(5) == other.high_cards(5)
     }
 }
 
-impl PartialOrd for HandResult {
+impl<'a> PartialOrd for HandResult<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.hand_rank != other.hand_rank {
             return self.hand_rank.partial_cmp(&other.hand_rank);
