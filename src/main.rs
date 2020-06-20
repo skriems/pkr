@@ -18,7 +18,6 @@ fn get_pool<'a>(cards: &'a Vec<Card>, dealt: &'a Vec<Card>) -> Vec<&'a Card> {
         .collect()
 }
 
-
 fn print_result(
     winner: &HandResult,
     winner_cards: &&[Card],
@@ -36,7 +35,13 @@ fn print_result(
     );
 }
 
-fn rnd(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, iterations: usize, benchmark: bool) {
+fn rnd(
+    deck: &Vec<Card>,
+    dealt: &Vec<Card>,
+    num_players: usize,
+    iterations: usize,
+    benchmark: bool,
+) {
     let mut holdings: Vec<&[Card]> = vec![];
 
     for i in 0..num_players {
@@ -156,7 +161,6 @@ fn rnd(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, iterations: usiz
 }
 
 fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bool) {
-
     let mut holdings: Vec<&[Card]> = vec![];
 
     for i in 0..num_players {
@@ -195,7 +199,6 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
     let num_suits = [0, 0, 0, 0];
 
     for combo in pool.iter().combinations(k) {
-
         let mut ranks1 = ranks;
         let mut num_ranks1 = num_ranks;
         let mut num_suits1 = num_suits;
@@ -262,7 +265,12 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
         }
         num_combos += 1;
     }
-    println!("-> evaluated {} combinations for {}/{} cards", num_combos, k, pool.len());
+    println!(
+        "-> evaluated {} combinations for {}/{} cards",
+        num_combos,
+        k,
+        pool.len()
+    );
     println!(
         "hero {:.2?}%; vilan {:.2?}%; splits {:.2?}%",
         hero_wins * 100.0 / num_combos as f32,
@@ -272,7 +280,6 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
 }
 
 fn get_cards(args: &[String]) -> Vec<Card> {
-
     let mut dealt: Vec<Card> = vec![];
 
     if args.len() > 1 {

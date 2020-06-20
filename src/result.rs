@@ -326,7 +326,11 @@ impl<'a> HandResult<'a> {
         }
     }
 
-    pub fn bare(ranks: &'a [[usize; 4]; 13], num_ranks: &'a [usize; 13], num_suits: &'a [usize; 4]) -> Self {
+    pub fn bare(
+        ranks: &'a [[usize; 4]; 13],
+        num_ranks: &'a [usize; 13],
+        num_suits: &'a [usize; 4],
+    ) -> Self {
         let hand_rank = rank(&ranks, &num_ranks, &num_suits);
 
         HandResult {
@@ -896,7 +900,6 @@ mod tests {
             Card::from("3c").unwrap(),
             Card::from("8h").unwrap(),
         ];
-
 
         let holding = [Card::from("4c").unwrap(), Card::from("5h").unwrap()];
         let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
