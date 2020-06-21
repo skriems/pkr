@@ -644,7 +644,7 @@ mod tests {
         let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
         let result1 = HandResult::new(&matrix);
         assert_eq!(result1.hand_rank, HandRank::TwoPair(Rank::Six, Rank::Four));
-        assert_eq!(result1.num_ranks, [0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
+        assert_eq!(result1.num_ranks, &[0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
 
         let holding = [Card::from("9s").unwrap(), Card::from("3d").unwrap()];
         let matrix = Matrix::with_combo(&holding, &community_cards, &combo);
@@ -1081,9 +1081,9 @@ mod tests {
         let result2 = HandResult::new(&matrix);
 
         assert_eq!(result1.hand_rank, HandRank::Flush(19));
-        assert_eq!(result1.num_ranks, [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0]);
+        assert_eq!(result1.num_ranks, &[1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0]);
         assert_eq!(result2.hand_rank, HandRank::Flush(31));
-        assert_eq!(result2.num_ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
+        assert_eq!(result2.num_ranks, &[0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
         assert_eq!(result1 < result2, true);
 
         // [K♠ 2♣], [Q♠ A♣ ] | 4♠ J♠ A♠ | 7♣ | 9♠	¯\_(ツ)_/¯ Flush(Spades) vs. Flush(Spades)
@@ -1104,9 +1104,9 @@ mod tests {
         let result2 = HandResult::new(&matrix);
 
         assert_eq!(result1.hand_rank, HandRank::Flush(32));
-        assert_eq!(result1.num_ranks, [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1]);
+        assert_eq!(result1.num_ranks, &[1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1]);
         assert_eq!(result2.hand_rank, HandRank::Flush(31));
-        assert_eq!(result2.num_ranks, [0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
+        assert_eq!(result2.num_ranks, &[0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 2]);
         assert_eq!(result1 > result2, true);
     }
 
@@ -1179,6 +1179,6 @@ mod tests {
     #[test]
     fn mem() {
         assert_eq!(std::mem::size_of::<HandRank>(), 16);
-        assert_eq!(std::mem::size_of::<HandResult>(), 568);
+        assert_eq!(std::mem::size_of::<HandResult>(), 40);
     }
 }
