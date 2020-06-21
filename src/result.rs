@@ -1,119 +1,6 @@
 use crate::card::*;
 use std::cmp::Ordering;
 
-pub struct Matrix<'a> {
-    pub cards: &'a [Card],
-    pub ranks: [[usize; 4]; 13],
-    pub num_ranks: [usize; 13],
-    pub num_suits: [usize; 4],
-}
-
-impl<'a> Matrix<'a> {
-    pub fn with_combo(cards: &'a [Card], community_cards: &[Card], combo: &Vec<&&Card>) -> Self {
-        let mut ranks = [
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ];
-
-        let mut num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let mut num_suits = [0, 0, 0, 0];
-
-        for card in cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks[rank][suit] = 1;
-            num_ranks[rank] += 1;
-            num_suits[suit] += 1;
-        }
-
-        for card in community_cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks[rank][suit] = 1;
-            num_ranks[rank] += 1;
-            num_suits[suit] += 1;
-        }
-
-        for card in combo {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks[rank][suit] = 1;
-            num_ranks[rank] += 1;
-            num_suits[suit] += 1;
-        }
-
-        Matrix {
-            cards,
-            ranks,
-            num_ranks,
-            num_suits,
-        }
-    }
-
-    pub fn with_slice(cards: &'a [Card], community_cards: &[Card], slice: &[&Card]) -> Self {
-        let mut ranks = [
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ];
-
-        let mut num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        let mut num_suits = [0, 0, 0, 0];
-
-        for card in cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks[rank][suit] = 1;
-            num_ranks[rank] += 1;
-            num_suits[suit] += 1;
-        }
-
-        for card in community_cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks[rank][suit] = 1;
-            num_ranks[rank] += 1;
-            num_suits[suit] += 1;
-        }
-
-        for card in slice {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks[rank][suit] = 1;
-            num_ranks[rank] += 1;
-            num_suits[suit] += 1;
-        }
-
-        Matrix {
-            cards,
-            ranks,
-            num_ranks,
-            num_suits,
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum HandRank {
     HighCard,
@@ -315,17 +202,6 @@ pub struct HandResult<'a> {
 }
 
 impl<'a> HandResult<'a> {
-    pub fn new(matrix: &'a Matrix) -> Self {
-        let hand_rank = rank(&matrix.ranks, &matrix.num_ranks, &matrix.num_suits);
-
-        HandResult {
-            ranks: &matrix.ranks,
-            num_ranks: &matrix.num_ranks,
-            num_suits: &matrix.num_suits,
-            hand_rank,
-        }
-    }
-
     pub fn bare(
         ranks: &'a [[usize; 4]; 13],
         num_ranks: &'a [usize; 13],
