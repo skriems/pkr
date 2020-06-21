@@ -3,7 +3,7 @@ use crate::Beats;
 use std::fmt;
 
 /// Suit
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Suit {
     Clubs,
     Spades,
@@ -12,7 +12,7 @@ pub enum Suit {
 }
 
 /// Rank
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Rank {
     Two,
     Three,
@@ -30,7 +30,7 @@ pub enum Rank {
 }
 
 /// Card
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialOrd)]
 pub struct Card {
     pub rank: Rank,
     pub suit: Suit,
@@ -540,6 +540,25 @@ mod tests {
         assert_eq!(
             Card::new(Rank::King, Suit::Diamonds) < Card::new(Rank::Ace, Suit::Clubs),
             true
+        );
+    }
+
+    #[test]
+    fn sort() {
+        let mut slice = [
+            Card::new(Rank::Ace, Suit::Clubs),
+            Card::new(Rank::Ace, Suit::Spades),
+            Card::new(Rank::King, Suit::Diamonds),
+        ];
+        slice.sort();
+
+        assert_eq!(
+            slice,
+            [
+                Card::new(Rank::King, Suit::Diamonds),
+                Card::new(Rank::Ace, Suit::Clubs),
+                Card::new(Rank::Ace, Suit::Spades),
+            ]
         );
     }
 
