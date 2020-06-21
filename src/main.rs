@@ -62,62 +62,76 @@ fn rnd(
     let mut splits = 0.0;
     let k = 5 - community_cards.len();
 
-    let ranks = [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
+    let mut ranks = [
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
     ];
 
-    let num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    let num_suits = [0, 0, 0, 0];
+    let mut num_ranks = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+
+    let mut num_suits = [[0, 0, 0, 0], [0, 0, 0, 0]];
+
+    for (i, holding) in holdings.iter().enumerate() {
+        for card in holding.iter() {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks[i][rank][suit] = 1;
+            num_ranks[i][rank] += 1;
+            num_suits[i][suit] += 1;
+        }
+    }
+
+    for i in 0..holdings.len() {
+        for card in community_cards {
+            let rank = card.rank as usize;
+            let suit = card.suit as usize;
+            ranks[i][rank][suit] = 1;
+            num_ranks[i][rank] += 1;
+            num_suits[i][suit] += 1;
+        }
+    }
 
     while num_combos < iterations {
         remaining.shuffle(&mut rng);
         let combo = &remaining[..k];
 
-        let mut ranks1 = ranks;
-        let mut num_ranks1 = num_ranks;
-        let mut num_suits1 = num_suits;
-        let mut ranks2 = ranks;
-        let mut num_ranks2 = num_ranks;
-        let mut num_suits2 = num_suits;
-
-        for card in holdings[0] {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks1[rank][suit] = 1;
-            num_ranks1[rank] += 1;
-            num_suits1[suit] += 1;
-        }
-
-        for card in holdings[1] {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks2[rank][suit] = 1;
-            num_ranks2[rank] += 1;
-            num_suits2[suit] += 1;
-        }
-
-        for card in community_cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks1[rank][suit] = 1;
-            ranks2[rank][suit] = 1;
-            num_ranks1[rank] += 1;
-            num_ranks2[rank] += 1;
-            num_suits1[suit] += 1;
-            num_suits2[suit] += 1;
-        }
+        let mut ranks1 = ranks[0];
+        let mut num_ranks1 = num_ranks[0];
+        let mut num_suits1 = num_suits[0];
+        let mut ranks2 = ranks[1];
+        let mut num_ranks2 = num_ranks[1];
+        let mut num_suits2 = num_suits[1];
 
         for card in combo.into_iter() {
             let rank = card.rank as usize;
@@ -179,59 +193,73 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
     let mut splits = 0.0;
     let k = 5 - community_cards.len();
 
-    let ranks = [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
+    let mut ranks = [
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
     ];
 
-    let num_ranks = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    let num_suits = [0, 0, 0, 0];
+    let mut num_ranks = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
 
-    for combo in pool.iter().combinations(k) {
-        let mut ranks1 = ranks;
-        let mut num_ranks1 = num_ranks;
-        let mut num_suits1 = num_suits;
-        let mut ranks2 = ranks;
-        let mut num_ranks2 = num_ranks;
-        let mut num_suits2 = num_suits;
+    let mut num_suits = [[0, 0, 0, 0], [0, 0, 0, 0]];
 
-        for card in holdings[0] {
+    for (i, holding) in holdings.iter().enumerate() {
+        for card in holding.iter() {
             let rank = card.rank as usize;
             let suit = card.suit as usize;
-            ranks1[rank][suit] = 1;
-            num_ranks1[rank] += 1;
-            num_suits1[suit] += 1;
+            ranks[i][rank][suit] = 1;
+            num_ranks[i][rank] += 1;
+            num_suits[i][suit] += 1;
         }
+    }
 
-        for card in holdings[1] {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            ranks2[rank][suit] = 1;
-            num_ranks2[rank] += 1;
-            num_suits2[suit] += 1;
-        }
-
+    for i in 0..holdings.len() {
         for card in community_cards {
             let rank = card.rank as usize;
             let suit = card.suit as usize;
-            ranks1[rank][suit] = 1;
-            ranks2[rank][suit] = 1;
-            num_ranks1[rank] += 1;
-            num_ranks2[rank] += 1;
-            num_suits1[suit] += 1;
-            num_suits2[suit] += 1;
+            ranks[i][rank][suit] = 1;
+            num_ranks[i][rank] += 1;
+            num_suits[i][suit] += 1;
         }
+    }
+
+    for combo in pool.iter().combinations(k) {
+        let mut ranks1 = ranks[0];
+        let mut num_ranks1 = num_ranks[0];
+        let mut num_suits1 = num_suits[0];
+        let mut ranks2 = ranks[1];
+        let mut num_ranks2 = num_ranks[1];
+        let mut num_suits2 = num_suits[1];
 
         for card in &combo {
             let rank = card.rank as usize;
