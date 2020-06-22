@@ -301,8 +301,8 @@ fn get_cards(args: &[String]) -> Vec<Card> {
         dealt.push(Card::from(&args[2][..2]).unwrap());
         dealt.push(Card::from(&args[2][2..]).unwrap());
     }
-    // Flop
     if args.len() > 3 {
+        // Flop
         let arg = &args[3];
         if arg.len() >= 2 {
             dealt.push(Card::from(&args[3][..2]).unwrap());
@@ -310,10 +310,19 @@ fn get_cards(args: &[String]) -> Vec<Card> {
         if arg.len() >= 4 {
             dealt.push(Card::from(&args[3][2..4]).unwrap());
         }
-        if arg.len() == 6 {
-            dealt.push(Card::from(&args[3][4..]).unwrap());
+        if arg.len() >= 6 {
+            dealt.push(Card::from(&args[3][4..6]).unwrap());
+        }
+        // Turn
+        if arg.len() >= 8 {
+            dealt.push(Card::from(&args[3][6..8]).unwrap());
+        }
+        // River
+        if arg.len() == 10 {
+            dealt.push(Card::from(&args[3][8..10]).unwrap());
         }
     }
+
     dealt
 }
 
