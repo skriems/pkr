@@ -1,3 +1,4 @@
+use pkr::error::{Error, Result};
 use pkr::prelude::*;
 
 use itertools::Itertools;
@@ -290,47 +291,46 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
     );
 }
 
-fn get_cards(args: &[String]) -> Vec<Card> {
+fn get_cards(args: &[String]) -> Result<Vec<Card>> {
     let mut dealt: Vec<Card> = vec![];
 
     if args.len() > 1 {
-        dealt.push(Card::from(&args[1][..2]).unwrap());
-        dealt.push(Card::from(&args[1][2..]).unwrap());
+        dealt.push(Card::from(&args[1][..2])?);
+        dealt.push(Card::from(&args[1][2..])?);
     }
     if args.len() > 2 {
-        dealt.push(Card::from(&args[2][..2]).unwrap());
-        dealt.push(Card::from(&args[2][2..]).unwrap());
+        dealt.push(Card::from(&args[2][..2])?);
+        dealt.push(Card::from(&args[2][2..])?);
     }
     if args.len() > 3 {
         // Flop
         let arg = &args[3];
         if arg.len() >= 2 {
-            dealt.push(Card::from(&args[3][..2]).unwrap());
+            dealt.push(Card::from(&args[3][..2])?);
         }
         if arg.len() >= 4 {
-            dealt.push(Card::from(&args[3][2..4]).unwrap());
+            dealt.push(Card::from(&args[3][2..4])?);
         }
         if arg.len() >= 6 {
-            dealt.push(Card::from(&args[3][4..6]).unwrap());
+            dealt.push(Card::from(&args[3][4..6])?);
         }
         // Turn
         if arg.len() >= 8 {
-            dealt.push(Card::from(&args[3][6..8]).unwrap());
+            dealt.push(Card::from(&args[3][6..8])?);
         }
         // River
         if arg.len() == 10 {
-            dealt.push(Card::from(&args[3][8..10]).unwrap());
+            dealt.push(Card::from(&args[3][8..10])?);
         }
     }
-
-    dealt
+    Ok(dealt)
 }
 
 fn print_usage() {
     println!("usage: <cmd> [NUM_ITERATIONS] <Holding> <Holding> [COMMUNITY_CARDS..]");
 }
 
-fn main() {
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 4 {
         print_usage();
@@ -394,14 +394,15 @@ fn main() {
 
     let cmd = &args[1];
     if cmd == "eval" {
-        let dealt = get_cards(&args[1..]);
+        let dealt = get_cards(&args[1..])?;
         combos(&deck, &dealt, 2, true);
     } else if cmd == "rnd" {
         if let Ok(iterations) = &args[2].parse::<usize>() {
-            let dealt = get_cards(&args[2..]);
+            let dealt = get_cards(&args[2..])?;
             rnd(&deck, &dealt, 2, *iterations, true);
         } else {
             print_usage();
         }
     }
+    Ok(())
 }
