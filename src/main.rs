@@ -4,20 +4,9 @@ use pkr::prelude::*;
 use itertools::Itertools;
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
+use std::collections::HashSet;
 use std::env;
 use std::process;
-
-fn get_pool<'a>(cards: &'a Vec<Card>, dealt: &'a Vec<Card>) -> Vec<&'a Card> {
-    cards
-        .iter()
-        .filter_map(|card| {
-            if dealt.contains(card) {
-                return None;
-            }
-            Some(card)
-        })
-        .collect()
-}
 
 fn print_result(
     winner: &HandResult,
@@ -37,23 +26,13 @@ fn print_result(
 }
 
 fn rnd(
-    deck: &Vec<Card>,
-    dealt: &Vec<Card>,
-    num_players: usize,
+    holdings: Vec<&[Card]>,
+    community_cards: &[Card],
+    deck: HashSet<Card>,
     iterations: usize,
     benchmark: bool,
 ) {
-    let mut holdings: Vec<&[Card]> = vec![];
-
-    for i in 0..num_players {
-        let start = i * 2;
-        holdings.push(&dealt[start..start + 2]);
-    }
-
-    let community_cards = &dealt[num_players * 2..];
-
-    let mut remaining: Vec<&Card> = deck.iter().filter(|c| !dealt.contains(c)).collect();
-
+    let mut remaining: Vec<&Card> = deck.iter().collect();
     let mut rng = ThreadRng::default();
 
     // Stats
@@ -167,18 +146,7 @@ fn rnd(
     );
 }
 
-fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bool) {
-    let mut holdings: Vec<&[Card]> = vec![];
-
-    for i in 0..num_players {
-        let start = i * 2;
-        holdings.push(&dealt[start..start + 2]);
-    }
-
-    let community_cards = &dealt[num_players * 2..];
-
-    let pool = get_pool(&deck, &dealt);
-
+fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, benchmark: bool) {
     // Stats
     let mut num_combos = 0;
     let mut hero_wins = 0.0;
@@ -186,7 +154,7 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
     let mut splits = 0.0;
     let k = 5 - community_cards.len();
 
-    for combo in pool.iter().combinations(k) {
+    for combo in deck.iter().combinations(k) {
         let mut ranks = [
             [
                 [0, 0, 0, 0],
@@ -281,7 +249,7 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
         "-> evaluated {} combinations for {}/{} cards",
         num_combos,
         k,
-        pool.len()
+        deck.len()
     );
     println!(
         "hero {:.2?}%; vilan {:.2?}%; splits {:.2?}%",
@@ -291,43 +259,114 @@ fn combos(deck: &Vec<Card>, dealt: &Vec<Card>, num_players: usize, benchmark: bo
     );
 }
 
-fn get_cards(args: &[String]) -> Result<Vec<Card>> {
-    let mut dealt: Vec<Card> = vec![];
-
-    if args.len() > 1 {
-        dealt.push(Card::from(&args[1][..2])?);
-        dealt.push(Card::from(&args[1][2..])?);
-    }
-    if args.len() > 2 {
-        dealt.push(Card::from(&args[2][..2])?);
-        dealt.push(Card::from(&args[2][2..])?);
-    }
-    if args.len() > 3 {
-        // Flop
-        let arg = &args[3];
-        if arg.len() >= 2 {
-            dealt.push(Card::from(&args[3][..2])?);
-        }
-        if arg.len() >= 4 {
-            dealt.push(Card::from(&args[3][2..4])?);
-        }
-        if arg.len() >= 6 {
-            dealt.push(Card::from(&args[3][4..6])?);
-        }
-        // Turn
-        if arg.len() >= 8 {
-            dealt.push(Card::from(&args[3][6..8])?);
-        }
-        // River
-        if arg.len() == 10 {
-            dealt.push(Card::from(&args[3][8..10])?);
-        }
-    }
-    Ok(dealt)
-}
-
 fn print_usage() {
     println!("usage: <cmd> [NUM_ITERATIONS] <Holding> <Holding> [COMMUNITY_CARDS..]");
+}
+
+fn get_cards(args: &[String]) -> Result<(Vec<Card>, usize, HashSet<Card>)> {
+    let mut deck: HashSet<Card> = HashSet::new();
+    deck.insert(Card::new(Rank::Ace, Suit::Clubs));
+    deck.insert(Card::new(Rank::King, Suit::Clubs));
+    deck.insert(Card::new(Rank::Queen, Suit::Clubs));
+    deck.insert(Card::new(Rank::Jack, Suit::Clubs));
+    deck.insert(Card::new(Rank::Ten, Suit::Clubs));
+    deck.insert(Card::new(Rank::Nine, Suit::Clubs));
+    deck.insert(Card::new(Rank::Eight, Suit::Clubs));
+    deck.insert(Card::new(Rank::Seven, Suit::Clubs));
+    deck.insert(Card::new(Rank::Six, Suit::Clubs));
+    deck.insert(Card::new(Rank::Five, Suit::Clubs));
+    deck.insert(Card::new(Rank::Four, Suit::Clubs));
+    deck.insert(Card::new(Rank::Three, Suit::Clubs));
+    deck.insert(Card::new(Rank::Two, Suit::Clubs));
+    deck.insert(Card::new(Rank::Ace, Suit::Spades));
+    deck.insert(Card::new(Rank::King, Suit::Spades));
+    deck.insert(Card::new(Rank::Queen, Suit::Spades));
+    deck.insert(Card::new(Rank::Jack, Suit::Spades));
+    deck.insert(Card::new(Rank::Ten, Suit::Spades));
+    deck.insert(Card::new(Rank::Nine, Suit::Spades));
+    deck.insert(Card::new(Rank::Eight, Suit::Spades));
+    deck.insert(Card::new(Rank::Seven, Suit::Spades));
+    deck.insert(Card::new(Rank::Six, Suit::Spades));
+    deck.insert(Card::new(Rank::Five, Suit::Spades));
+    deck.insert(Card::new(Rank::Four, Suit::Spades));
+    deck.insert(Card::new(Rank::Three, Suit::Spades));
+    deck.insert(Card::new(Rank::Two, Suit::Spades));
+    deck.insert(Card::new(Rank::Ace, Suit::Hearts));
+    deck.insert(Card::new(Rank::King, Suit::Hearts));
+    deck.insert(Card::new(Rank::Queen, Suit::Hearts));
+    deck.insert(Card::new(Rank::Jack, Suit::Hearts));
+    deck.insert(Card::new(Rank::Ten, Suit::Hearts));
+    deck.insert(Card::new(Rank::Nine, Suit::Hearts));
+    deck.insert(Card::new(Rank::Eight, Suit::Hearts));
+    deck.insert(Card::new(Rank::Seven, Suit::Hearts));
+    deck.insert(Card::new(Rank::Six, Suit::Hearts));
+    deck.insert(Card::new(Rank::Five, Suit::Hearts));
+    deck.insert(Card::new(Rank::Four, Suit::Hearts));
+    deck.insert(Card::new(Rank::Three, Suit::Hearts));
+    deck.insert(Card::new(Rank::Two, Suit::Hearts));
+    deck.insert(Card::new(Rank::Ace, Suit::Diamonds));
+    deck.insert(Card::new(Rank::King, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Queen, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Jack, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Ten, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Nine, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Eight, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Seven, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Six, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Five, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Four, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Three, Suit::Diamonds));
+    deck.insert(Card::new(Rank::Two, Suit::Diamonds));
+
+    let mut dealt: Vec<Card> = Vec::with_capacity(23); // 9 x holdings + flop + turn + river
+    let mut num_players = 0;
+
+    for (i, arg) in args.iter().enumerate() {
+        if i == 0 {
+            continue;
+        }
+
+        let len = arg.len();
+
+        // holding
+        if len == 4 {
+            num_players += 1;
+            dealt.push(
+                deck.take(&Card::from(&arg[..2])?)
+                    .ok_or(Error::DuplicateCard)?,
+            );
+            dealt.push(
+                deck.take(&Card::from(&arg[2..])?)
+                    .ok_or(Error::DuplicateCard)?,
+            );
+        }
+
+        // flop
+        if len == 3 {
+            dealt.push(
+                deck.take(&Card::from(&arg[..2])?)
+                    .ok_or(Error::DuplicateCard)?,
+            );
+            dealt.push(
+                deck.take(&Card::from(&arg[2..4])?)
+                    .ok_or(Error::DuplicateCard)?,
+            );
+            dealt.push(
+                deck.take(&Card::from(&arg[4..6])?)
+                    .ok_or(Error::DuplicateCard)?,
+            );
+        }
+
+        // turn or river
+        if len == 2 {
+            dealt.push(
+                deck.take(&Card::from(&arg[..2])?)
+                    .ok_or(Error::DuplicateCard)?,
+            );
+        }
+    }
+
+    Ok((dealt, num_players, deck))
 }
 
 fn main() -> Result<()> {
@@ -337,69 +376,23 @@ fn main() -> Result<()> {
         process::exit(1);
     }
 
-    let deck = vec![
-        Card::new(Rank::Ace, Suit::Clubs),
-        Card::new(Rank::King, Suit::Clubs),
-        Card::new(Rank::Queen, Suit::Clubs),
-        Card::new(Rank::Jack, Suit::Clubs),
-        Card::new(Rank::Ten, Suit::Clubs),
-        Card::new(Rank::Nine, Suit::Clubs),
-        Card::new(Rank::Eight, Suit::Clubs),
-        Card::new(Rank::Seven, Suit::Clubs),
-        Card::new(Rank::Six, Suit::Clubs),
-        Card::new(Rank::Five, Suit::Clubs),
-        Card::new(Rank::Four, Suit::Clubs),
-        Card::new(Rank::Three, Suit::Clubs),
-        Card::new(Rank::Two, Suit::Clubs),
-        Card::new(Rank::Ace, Suit::Spades),
-        Card::new(Rank::King, Suit::Spades),
-        Card::new(Rank::Queen, Suit::Spades),
-        Card::new(Rank::Jack, Suit::Spades),
-        Card::new(Rank::Ten, Suit::Spades),
-        Card::new(Rank::Nine, Suit::Spades),
-        Card::new(Rank::Eight, Suit::Spades),
-        Card::new(Rank::Seven, Suit::Spades),
-        Card::new(Rank::Six, Suit::Spades),
-        Card::new(Rank::Five, Suit::Spades),
-        Card::new(Rank::Four, Suit::Spades),
-        Card::new(Rank::Three, Suit::Spades),
-        Card::new(Rank::Two, Suit::Spades),
-        Card::new(Rank::Ace, Suit::Hearts),
-        Card::new(Rank::King, Suit::Hearts),
-        Card::new(Rank::Queen, Suit::Hearts),
-        Card::new(Rank::Jack, Suit::Hearts),
-        Card::new(Rank::Ten, Suit::Hearts),
-        Card::new(Rank::Nine, Suit::Hearts),
-        Card::new(Rank::Eight, Suit::Hearts),
-        Card::new(Rank::Seven, Suit::Hearts),
-        Card::new(Rank::Six, Suit::Hearts),
-        Card::new(Rank::Five, Suit::Hearts),
-        Card::new(Rank::Four, Suit::Hearts),
-        Card::new(Rank::Three, Suit::Hearts),
-        Card::new(Rank::Two, Suit::Hearts),
-        Card::new(Rank::Ace, Suit::Diamonds),
-        Card::new(Rank::King, Suit::Diamonds),
-        Card::new(Rank::Queen, Suit::Diamonds),
-        Card::new(Rank::Jack, Suit::Diamonds),
-        Card::new(Rank::Ten, Suit::Diamonds),
-        Card::new(Rank::Nine, Suit::Diamonds),
-        Card::new(Rank::Eight, Suit::Diamonds),
-        Card::new(Rank::Seven, Suit::Diamonds),
-        Card::new(Rank::Six, Suit::Diamonds),
-        Card::new(Rank::Five, Suit::Diamonds),
-        Card::new(Rank::Four, Suit::Diamonds),
-        Card::new(Rank::Three, Suit::Diamonds),
-        Card::new(Rank::Two, Suit::Diamonds),
-    ];
-
     let cmd = &args[1];
+    let offset = if cmd == "eval" { 1 } else { 2 };
+
+    let (dealt, num_players, deck) = get_cards(&args[offset..])?;
+    let mut holdings: Vec<&[Card]> = Vec::with_capacity(dealt.len());
+    for i in 0..num_players {
+        let start = i * 2;
+        holdings.push(&dealt[start..start + 2]);
+    }
+
+    let community_cards = &dealt[num_players * 2..];
+
     if cmd == "eval" {
-        let dealt = get_cards(&args[1..])?;
-        combos(&deck, &dealt, 2, true);
+        combos(holdings, community_cards, deck, true);
     } else if cmd == "rnd" {
         if let Ok(iterations) = &args[2].parse::<usize>() {
-            let dealt = get_cards(&args[2..])?;
-            rnd(&deck, &dealt, 2, *iterations, true);
+            rnd(holdings, community_cards, deck, *iterations, true);
         } else {
             print_usage();
         }
