@@ -1,5 +1,6 @@
 use crate::card::*;
 use std::cmp::Ordering;
+use std::fmt;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum HandRank {
@@ -251,6 +252,40 @@ impl<'a> PartialOrd for HandResult<'a> {
                 return self.high_cards(1).partial_cmp(&other.high_cards(1));
             }
             _ => Some(Ordering::Equal),
+        }
+    }
+}
+
+impl fmt::Display for HandRank {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HandRank::HighCard => write!(f, "HighCard"),
+            HandRank::Pair(ref _r) => write!(f, "Pair"),
+            HandRank::TwoPair(ref _r, ref _n) => write!(f, "TwoPair"),
+            HandRank::Trips(ref _r) => write!(f, "Trips"),
+            HandRank::Straight(ref _r) => write!(f, "Straight"),
+            HandRank::Flush(ref _r) => write!(f, "Flush"),
+            HandRank::FullHouse(ref _r, ref _n) => write!(f, "FullHouse"),
+            HandRank::Quads(ref _r) => write!(f, "Quads"),
+            HandRank::StraightFlush(ref _r) => write!(f, "StraitFlush"),
+            HandRank::RoyalFlush => write!(f, "RoyalFlush"),
+        }
+    }
+}
+
+impl From<&HandRank> for usize {
+    fn from(rank: &HandRank) -> Self {
+        match rank {
+            HandRank::HighCard => 0,
+            HandRank::Pair(ref _r) => 1,
+            HandRank::TwoPair(ref _r, ref _n) => 2,
+            HandRank::Trips(ref _r) => 3,
+            HandRank::Straight(ref _r) => 4,
+            HandRank::Flush(ref _r) => 5,
+            HandRank::FullHouse(ref _r, ref _n) => 6,
+            HandRank::Quads(ref _r) => 7,
+            HandRank::StraightFlush(ref _r) => 8,
+            HandRank::RoyalFlush => 9,
         }
     }
 }

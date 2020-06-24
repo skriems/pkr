@@ -4,7 +4,7 @@ use pkr::prelude::*;
 use itertools::Itertools;
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 
@@ -37,10 +37,9 @@ fn rnd(
 
     // Stats
     let mut num_combos = 0;
-    let mut hero_wins = 0.0;
-    let mut vilan_wins = 0.0;
-    let mut splits = 0.0;
     let k = 5 - community_cards.len();
+
+    let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
 
     while num_combos < iterations {
         remaining.shuffle(&mut rng);
@@ -120,39 +119,24 @@ fn rnd(
         let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
 
         if hero > vilan {
-            hero_wins += 1.0;
-            if !benchmark {
-                // print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
+            if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
+                *count += 1;
+            } else {
+                stats.insert(usize::from(&hero.hand_rank), 1);
             }
-        } else if hero < vilan {
-            vilan_wins += 1.0;
-            if !benchmark {
-                // print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
-            }
-        } else {
-            splits += 1.0;
-            // if !benchmark {
-            //     print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
-            // }
         }
         num_combos += 1;
     }
     println!("-> evaluated {} random hands", num_combos);
-    println!(
-        "hero {:.2?}%; vilan {:.2?}%; splits {:.2?}%",
-        hero_wins * 100.0 / num_combos as f32,
-        vilan_wins * 100.0 / num_combos as f32,
-        splits * 100.0 / num_combos as f32
-    );
+    println!("{:#?}", stats);
 }
 
 fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, benchmark: bool) {
     // Stats
     let mut num_combos = 0;
-    let mut hero_wins = 0.0;
-    let mut vilan_wins = 0.0;
-    let mut splits = 0.0;
     let k = 5 - community_cards.len();
+
+    let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
 
     for combo in deck.iter().combinations(k) {
         let mut ranks = [
@@ -228,20 +212,11 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>,
         let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
 
         if hero > vilan {
-            hero_wins += 1.0;
-            if !benchmark {
-                // print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
+            if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
+                *count += 1;
+            } else {
+                stats.insert(usize::from(&hero.hand_rank), 1);
             }
-        } else if hero < vilan {
-            vilan_wins += 1.0;
-            if !benchmark {
-                // print_result(&vilan, &vilan_matrix.cards, &hero, &hero_matrix.cards);
-            }
-        } else {
-            splits += 1.0;
-            // if !benchmark {
-            //     print_result(&hero, &hero_matrix.cards, &vilan, &vilan_matrix.cards);
-            // }
         }
         num_combos += 1;
     }
@@ -251,12 +226,7 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>,
         k,
         deck.len()
     );
-    println!(
-        "hero {:.2?}%; vilan {:.2?}%; splits {:.2?}%",
-        hero_wins * 100.0 / num_combos as f32,
-        vilan_wins * 100.0 / num_combos as f32,
-        splits * 100.0 / num_combos as f32
-    );
+    println!("{:#?}", stats);
 }
 
 fn print_usage() {
