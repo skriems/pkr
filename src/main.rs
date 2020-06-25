@@ -8,21 +8,42 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 
-fn print_result(
-    winner: &HandResult,
-    winner_cards: &&[Card],
-    looser: &HandResult,
-    looser_cards: &&[Card],
+fn print_rnd(
+    stats: HashMap<usize, usize>,
+    num: usize
+) {
+    println!("evaluated {} random hands", num);
+    println!("-> hero wins with:");
+    let mut wins = 0;
+    for i in 0..9 {
+        if let Some((_rank, n)) = stats.get_key_value(&i) {
+            wins += n;
+            println!("{:>11}: {:>6.2}% ({})", format!("{}", HandRank::from(i)), *n as f64 * 100.0 / num as f64, n);
+        }
+    }
+}
+
+fn print_combos(
+    stats: HashMap<usize, usize>,
+    num: usize,
+    k: usize,
+    len: usize
 ) {
     println!(
-        "[{}{}] vs. [{}{}] | \t{:?} vs. {:?}",
-        winner_cards[0],
-        winner_cards[1],
-        looser_cards[0],
-        looser_cards[1],
-        winner.hand_rank,
-        looser.hand_rank,
+        "evaluated {} combinations for {}/{} cards",
+        num,
+        k,
+        len
     );
+    println!("-> hero wins with:");
+
+    let mut wins = 0;
+    for i in 0..9 {
+        if let Some((_rank, n)) = stats.get_key_value(&i) {
+            wins += n;
+            println!("{:>11}: {:>6.2}% ({})", format!("{}", HandRank::from(i)), *n as f64 * 100.0 / num as f64, n);
+        }
+    }
 }
 
 fn rnd(
@@ -127,8 +148,7 @@ fn rnd(
         }
         num_combos += 1;
     }
-    println!("-> evaluated {} random hands", num_combos);
-    println!("{:#?}", stats);
+    print_rnd(stats, num_combos);
 }
 
 fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, benchmark: bool) {
@@ -220,13 +240,7 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>,
         }
         num_combos += 1;
     }
-    println!(
-        "-> evaluated {} combinations for {}/{} cards",
-        num_combos,
-        k,
-        deck.len()
-    );
-    println!("{:#?}", stats);
+    print_combos(stats, num_combos, k, deck.len());
 }
 
 fn print_usage() {
@@ -312,7 +326,7 @@ fn get_cards(args: &[String]) -> Result<(Vec<Card>, usize, HashSet<Card>)> {
         }
 
         // flop
-        if len == 3 {
+        if len == 6 {
             dealt.push(
                 deck.take(&Card::from(&arg[..2])?)
                     .ok_or(Error::DuplicateCard)?,

@@ -290,6 +290,24 @@ impl From<&HandRank> for usize {
     }
 }
 
+impl From<usize> for HandRank {
+    fn from(n: usize) -> Self {
+        match n {
+            0 => HandRank::HighCard,
+            1 => HandRank::Pair(Rank::Ace),
+            2 => HandRank::TwoPair(Rank::Ace, Rank::Ace),
+            3 => HandRank::Trips(Rank::Ace),
+            4 => HandRank::Straight(Rank::Ace),
+            5 => HandRank::Flush(42),
+            6 => HandRank::FullHouse(Rank::Ace, Rank::King),
+            7 => HandRank::Quads(Rank::Ace),
+            8 => HandRank::StraightFlush(Rank::Ace),
+            9 => HandRank::RoyalFlush,
+            _ => unreachable!()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
