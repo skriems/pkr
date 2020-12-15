@@ -8,150 +8,59 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 
-fn print_rnd(
-    stats: HashMap<usize, usize>,
-    num: usize
-) {
-    println!("evaluated {} random hands", num);
-    println!("-> hero wins with:");
-    let mut wins = 0;
-    for i in 0..9 {
-        if let Some((_rank, n)) = stats.get_key_value(&i) {
-            wins += n;
-            println!("{:>11}: {:>6.2}% ({})", format!("{}", HandRank::from(i)), *n as f64 * 100.0 / num as f64, n);
-        }
+struct StringChunks<'a> {
+    slice: &'a str,
+    step: usize,
+}
+
+impl<'a> StringChunks<'a> {
+    fn new(slice: &'a str, step: usize) -> StringChunks<'a> {
+        StringChunks { slice, step }
     }
 }
 
-fn print_combos(
-    stats: HashMap<usize, usize>,
-    num: usize,
-    k: usize,
-    len: usize
-) {
-    println!(
-        "evaluated {} combinations for {}/{} cards",
-        num,
-        k,
-        len
-    );
-    println!("-> hero wins with:");
-
-    let mut wins = 0;
-    for i in 0..9 {
-        if let Some((_rank, n)) = stats.get_key_value(&i) {
-            wins += n;
-            println!("{:>11}: {:>6.2}% ({})", format!("{}", HandRank::from(i)), *n as f64 * 100.0 / num as f64, n);
+impl<'a> Iterator for StringChunks<'a> {
+    type Item = &'a str;
+    fn next(&mut self) -> Option<&'a str> {
+        if self.slice.is_empty() {
+            return None;
         }
+        let (ret, rest) = self.slice.split_at(self.step);
+        self.slice = rest;
+        Some(ret)
     }
 }
 
-fn rnd(
-    holdings: Vec<&[Card]>,
-    community_cards: &[Card],
-    deck: HashSet<Card>,
-    iterations: usize,
-    benchmark: bool,
-) {
-    let mut remaining: Vec<&Card> = deck.iter().collect();
-    let mut rng = ThreadRng::default();
+// fn rnd(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, iterations: usize) {
+//     let mut remaining: Vec<&Card> = deck.iter().collect();
+//     let mut rng = ThreadRng::default();
 
-    // Stats
-    let mut num_combos = 0;
-    let k = 5 - community_cards.len();
+//     // Stats
+//     let mut num_combos = 0;
+//     let k = 5 - community_cards.len();
 
-    let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
+//     let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
 
-    while num_combos < iterations {
-        remaining.shuffle(&mut rng);
-        let combo = &remaining[..k];
+//     while num_combos < iterations {
+//         remaining.shuffle(&mut rng);
+//         let combo = &remaining[..k];
+//         let (ranks, num_ranks, num_suits) = setup_arrays(&holdings, &community_cards, &combo);
+//         let hero = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+//         let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
 
-        let mut ranks = [
-            [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ],
-            [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ],
-        ];
+//         if hero > vilan {
+//             if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
+//                 *count += 1;
+//             } else {
+//                 stats.insert(usize::from(&hero.hand_rank), 1);
+//             }
+//         }
+//         num_combos += 1;
+//     }
+//     print_rnd(stats, num_combos);
+// }
 
-        let mut num_ranks = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ];
-
-        let mut num_suits = [[0, 0, 0, 0], [0, 0, 0, 0]];
-
-        for (i, holding) in holdings.iter().enumerate() {
-            for card in holding.iter() {
-                let rank = card.rank as usize;
-                let suit = card.suit as usize;
-                ranks[i][rank][suit] = 1;
-                num_ranks[i][rank] += 1;
-                num_suits[i][suit] += 1;
-            }
-        }
-
-        for card in community_cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            for i in 0..holdings.len() {
-                ranks[i][rank][suit] = 1;
-                num_ranks[i][rank] += 1;
-                num_suits[i][suit] += 1;
-            }
-        }
-
-        for card in combo {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            for i in 0..holdings.len() {
-                ranks[i][rank][suit] = 1;
-                num_ranks[i][rank] += 1;
-                num_suits[i][suit] += 1;
-            }
-        }
-
-        let hero = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
-        let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
-
-        if hero > vilan {
-            if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
-                *count += 1;
-            } else {
-                stats.insert(usize::from(&hero.hand_rank), 1);
-            }
-        }
-        num_combos += 1;
-    }
-    print_rnd(stats, num_combos);
-}
-
-fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, benchmark: bool) {
+fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>) {
     // Stats
     let mut num_combos = 0;
     let k = 5 - community_cards.len();
@@ -159,77 +68,21 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>,
     let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
 
     for combo in deck.iter().combinations(k) {
-        let mut ranks = [
-            [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ],
-            [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ],
-        ];
-
-        let mut num_ranks = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ];
-        let mut num_suits = [[0, 0, 0, 0], [0, 0, 0, 0]];
-
-        for (i, holding) in holdings.iter().enumerate() {
-            for card in holding.iter() {
-                let rank = card.rank as usize;
-                let suit = card.suit as usize;
-                ranks[i][rank][suit] = 1;
-                num_ranks[i][rank] += 1;
-                num_suits[i][suit] += 1;
-            }
-        }
-
-        for card in community_cards {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            for i in 0..holdings.len() {
-                ranks[i][rank][suit] = 1;
-                num_ranks[i][rank] += 1;
-                num_suits[i][suit] += 1;
-            }
-        }
-
-        for card in combo {
-            let rank = card.rank as usize;
-            let suit = card.suit as usize;
-            for i in 0..holdings.len() {
-                ranks[i][rank][suit] = 1;
-                num_ranks[i][rank] += 1;
-                num_suits[i][suit] += 1;
-            }
-        }
-
+        let (ranks, num_ranks, num_suits) = setup_arrays(&holdings, &community_cards, &combo);
         let hero = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
         let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
+
+        if hero.hand_rank == HandRank::RoyalFlush {
+            print!("{:?}: ", &hero.hand_rank);
+            for (i, x) in ranks[0].iter().enumerate() {
+                for y in x {
+                    if *y == 1 as usize {
+                        print!("{} ", Card::new(Rank::from(i), Suit::from(*y)));
+                    }
+                }
+            }
+            println!("");
+        }
 
         if hero > vilan {
             if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
@@ -243,11 +96,7 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>,
     print_combos(stats, num_combos, k, deck.len());
 }
 
-fn print_usage() {
-    println!("usage: <cmd> [NUM_ITERATIONS] <Holding> <Holding> [COMMUNITY_CARDS..]");
-}
-
-fn get_cards(args: &[String]) -> Result<(Vec<Card>, usize, HashSet<Card>)> {
+fn get_cards(args: &[String]) -> Result<(Vec<Card>, HashSet<Card>)> {
     let mut deck: HashSet<Card> = HashSet::new();
     deck.insert(Card::new(Rank::Ace, Suit::Clubs));
     deck.insert(Card::new(Rank::King, Suit::Clubs));
@@ -302,55 +151,24 @@ fn get_cards(args: &[String]) -> Result<(Vec<Card>, usize, HashSet<Card>)> {
     deck.insert(Card::new(Rank::Three, Suit::Diamonds));
     deck.insert(Card::new(Rank::Two, Suit::Diamonds));
 
-    let mut dealt: Vec<Card> = Vec::with_capacity(23); // 9 x holdings + flop + turn + river
-    let mut num_players = 0;
+    let mut dealt: Vec<Card> = Vec::with_capacity(7); // 2 x holdings + flop + turn + river
 
     for (i, arg) in args.iter().enumerate() {
         if i == 0 {
             continue;
         }
 
-        let len = arg.len();
-
-        // holding
-        if len == 4 {
-            num_players += 1;
-            dealt.push(
-                deck.take(&Card::from(&arg[..2])?)
-                    .ok_or(Error::DuplicateCard)?,
-            );
-            dealt.push(
-                deck.take(&Card::from(&arg[2..])?)
-                    .ok_or(Error::DuplicateCard)?,
-            );
-        }
-
-        // flop
-        if len == 6 {
-            dealt.push(
-                deck.take(&Card::from(&arg[..2])?)
-                    .ok_or(Error::DuplicateCard)?,
-            );
-            dealt.push(
-                deck.take(&Card::from(&arg[2..4])?)
-                    .ok_or(Error::DuplicateCard)?,
-            );
-            dealt.push(
-                deck.take(&Card::from(&arg[4..6])?)
-                    .ok_or(Error::DuplicateCard)?,
-            );
-        }
-
-        // turn or river
-        if len == 2 {
-            dealt.push(
-                deck.take(&Card::from(&arg[..2])?)
-                    .ok_or(Error::DuplicateCard)?,
-            );
+        for card_string in StringChunks::new(&arg, 2) {
+            if let Ok(card) = Card::from(card_string) {
+                dealt.push(deck.take(&card).ok_or(Error::DuplicateCard)?);
+            }
         }
     }
+    Ok((dealt, deck))
+}
 
-    Ok((dealt, num_players, deck))
+fn print_usage() {
+    println!("usage: <cmd> [NUM_ITERATIONS] <Holding> <Holding> [COMMUNITY_CARDS..]");
 }
 
 fn main() -> Result<()> {
@@ -363,23 +181,32 @@ fn main() -> Result<()> {
     let cmd = &args[1];
     let offset = if cmd == "eval" { 1 } else { 2 };
 
-    let (dealt, num_players, deck) = get_cards(&args[offset..])?;
+    let (dealt, deck) = get_cards(&args[offset..])?;
+
     let mut holdings: Vec<&[Card]> = Vec::with_capacity(dealt.len());
-    for i in 0..num_players {
+    for i in 0..2 {
         let start = i * 2;
         holdings.push(&dealt[start..start + 2]);
     }
 
-    let community_cards = &dealt[num_players * 2..];
+    let community_cards = &dealt[2 * 2..];
 
     if cmd == "eval" {
-        combos(holdings, community_cards, deck, true);
-    } else if cmd == "rnd" {
-        if let Ok(iterations) = &args[2].parse::<usize>() {
-            rnd(holdings, community_cards, deck, *iterations, true);
-        } else {
-            print_usage();
-        }
+        combos(holdings, community_cards, deck);
     }
+
+    // } else if cmd == "rnd" {
+    //     if let Ok(iterations) = &args[2].parse::<usize>() {
+    //         rnd(holdings, community_cards, deck, *iterations, true);
+    //     } else {
+    //         print_usage();
+    //     }
+    // }
+
+    // let deck = Deck::new();
+    // for combo in deck.cards.iter().combinations(2) {
+    //     println!("{:?}", combo)
+    // }
+
     Ok(())
 }

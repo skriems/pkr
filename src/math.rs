@@ -34,11 +34,3 @@
 //!
 //! Turn:   outs * 4 || outs * 3 + 8 (if outs > 8)
 //! River:  outs * 2 || outs + 8
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}

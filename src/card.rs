@@ -70,7 +70,6 @@ impl Card {
             "d" => Suit::Diamonds,
             _ => return Err(Error::ParseError),
         };
-
         Ok(Card { rank, suit })
     }
 }
@@ -565,5 +564,7 @@ mod tests {
     #[test]
     fn mem() {
         assert_eq!(std::mem::size_of::<Card>(), 2);
+        assert_eq!(std::mem::size_of::<Rank>(), 1);
+        assert_eq!(std::mem::size_of::<Suit>(), 1);
     }
 }
