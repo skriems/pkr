@@ -74,10 +74,10 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>)
 
         if hero.hand_rank == HandRank::RoyalFlush {
             print!("{:?}: ", &hero.hand_rank);
-            for (i, x) in ranks[0].iter().enumerate() {
-                for y in x {
-                    if *y == 1 as usize {
-                        print!("{} ", Card::new(Rank::from(i), Suit::from(*y)));
+            for (rank, card_array) in ranks[0].iter().enumerate() {
+                for suit in card_array {
+                    if *suit == 1 as usize {
+                        print!("{} ", Card::new(Rank::from(rank), Suit::from(*suit)));
                     }
                 }
             }
