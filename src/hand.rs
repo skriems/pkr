@@ -1,17 +1,17 @@
 use crate::card::*;
-use crate::rank::*;
+use crate::hand_rank::*;
 use std::cmp::Ordering;
 
 /// HandResult
 #[derive(Debug)]
-pub struct HandResult<'a> {
+pub struct Hand<'a> {
     pub ranks: &'a [[usize; 4]; 13],
     pub num_ranks: &'a [usize; 13],
     pub num_suits: &'a [usize; 4],
     pub hand_rank: HandRank,
 }
 
-impl<'a> HandResult<'a> {
+impl<'a> Hand<'a> {
     pub fn bare(
         ranks: &'a [[usize; 4]; 13],
         num_ranks: &'a [usize; 13],
@@ -19,7 +19,7 @@ impl<'a> HandResult<'a> {
     ) -> Self {
         let hand_rank = rank(&ranks, &num_ranks, &num_suits);
 
-        HandResult {
+        Hand {
             ranks,
             num_ranks,
             num_suits,
@@ -33,13 +33,13 @@ impl<'a> HandResult<'a> {
     }
 }
 
-impl<'a> PartialEq for HandResult<'a> {
+impl<'a> PartialEq for Hand<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.high_cards(5) == other.high_cards(5)
     }
 }
 
-impl<'a> PartialOrd for HandResult<'a> {
+impl<'a> PartialOrd for Hand<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.hand_rank != other.hand_rank {
             return self.hand_rank.partial_cmp(&other.hand_rank);
@@ -262,7 +262,7 @@ mod tests {
         let combo = vec![];
 
         let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-        let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+        let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
         assert_eq!(result.hand_rank, HandRank::Pair(Rank::Eight));
         assert_eq!(result.num_ranks, &[1, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 1, 1]);
@@ -270,6 +270,6 @@ mod tests {
 
     #[test]
     fn mem() {
-        assert_eq!(std::mem::size_of::<HandResult>(), 40);
+        assert_eq!(std::mem::size_of::<Hand>(), 40);
     }
 }

@@ -1,9 +1,9 @@
 pub mod card;
 pub mod deck;
 pub mod error;
+pub mod hand;
+pub mod hand_rank;
 pub mod prelude;
-pub mod rank;
-pub mod result;
 
 use std::collections::HashMap;
 
@@ -111,7 +111,7 @@ pub fn print_rnd(stats: HashMap<usize, usize>, num: usize) {
             wins += n;
             println!(
                 "{:>11}: {:>6.2}% ({})",
-                format!("{}", rank::HandRank::from(i)),
+                format!("{}", hand_rank::HandRank::from(i)),
                 *n as f64 * 100.0 / num as f64,
                 n
             );
@@ -129,7 +129,7 @@ pub fn print_combos(stats: HashMap<usize, usize>, num: usize, k: usize, len: usi
             wins += n;
             println!(
                 "{:>11}: {:>6.2}% ({})",
-                format!("{}", rank::HandRank::from(i)),
+                format!("{}", hand_rank::HandRank::from(i)),
                 *n as f64 * 100.0 / num as f64,
                 n
             );
