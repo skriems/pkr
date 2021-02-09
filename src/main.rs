@@ -2,8 +2,6 @@ use pkr::error::{Error, Result};
 use pkr::prelude::*;
 
 use itertools::Itertools;
-use rand::rngs::ThreadRng;
-use rand::seq::SliceRandom;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
@@ -179,7 +177,7 @@ fn main() -> Result<()> {
     }
 
     let cmd = &args[1];
-    let offset = if cmd == "eval" { 1 } else { 2 };
+    let offset = if cmd == "rnd" { 2 } else { 1 };
 
     let (dealt, deck) = get_cards(&args[offset..])?;
 
@@ -203,10 +201,14 @@ fn main() -> Result<()> {
     //     }
     // }
 
-    // let deck = Deck::new();
-    // for combo in deck.cards.iter().combinations(2) {
-    //     println!("{:?}", combo)
-    // }
-
+    if cmd == "test" {
+        let deck = Deck::new();
+        let mut count = 0;
+        for combo in deck.cards.iter().combinations(2) {
+            count += 1;
+            println!("{:?}", combo);
+        }
+        println!("{:?}", count);
+    }
     Ok(())
 }
