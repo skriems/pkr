@@ -69,15 +69,15 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>)
 
     for combo in deck.iter().combinations(k) {
         let (ranks, num_ranks, num_suits) = setup_arrays(&holdings, &community_cards, &combo);
-        let hero = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
-        let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
+        let hero = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+        let vilan = Hand::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
 
         if hero.hand_rank == HandRank::RoyalFlush {
             print!("{:?}: ", &hero.hand_rank);
-            for (rank, card_array) in ranks[0].iter().enumerate() {
-                for suit in card_array {
+            for (rank, card_array) in ranks[0].iter().rev().enumerate() {
+                for (idx, suit) in card_array.iter().enumerate() {
                     if *suit == 1 as usize {
-                        print!("{} ", Card::new(Rank::from(rank), Suit::from(*suit)));
+                        print!("{} ", Card::new(Rank::from(12 - rank), Suit::from(idx)));
                     }
                 }
             }
