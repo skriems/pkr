@@ -23,21 +23,23 @@ pub fn setup_arrays(
     community_cards: &[card::Card],
     combo: &Vec<&card::Card>,
 ) -> ([[[usize; 4]; 13]; 2], [[usize; 13]; 2], [[usize; 4]; 2]) {
+    // one array per player
     let mut ranks = [
         [
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
+            // clubs, spades, hearts, diamonds
+            [0, 0, 0, 0], // Two
+            [0, 0, 0, 0], // Three
+            [0, 0, 0, 0], // Four
+            [0, 0, 0, 0], // Five
+            [0, 0, 0, 0], // Six
+            [0, 0, 0, 0], // Seven
+            [0, 0, 0, 0], // Eight
+            [0, 0, 0, 0], // Nine
+            [0, 0, 0, 0], // Ten
+            [0, 0, 0, 0], // Jack
+            [0, 0, 0, 0], // Queen
+            [0, 0, 0, 0], // King
+            [0, 0, 0, 0], // Ace
         ],
         [
             [0, 0, 0, 0],
@@ -56,12 +58,16 @@ pub fn setup_arrays(
         ],
     ];
 
+    // number of cards from Two -> Ace
     let mut num_ranks = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
+
+    // number of suites from Clubs to Diamonds
     let mut num_suits = [[0, 0, 0, 0], [0, 0, 0, 0]];
 
+    // populating the arrays with the holdings
     for (i, holding) in holdings.iter().enumerate() {
         for card in holding.iter() {
             let rank = card.rank as usize;
@@ -72,6 +78,7 @@ pub fn setup_arrays(
         }
     }
 
+    // populating the arrays with the community cards
     for card in community_cards {
         let rank = card.rank as usize;
         let suit = card.suit as usize;
@@ -82,6 +89,7 @@ pub fn setup_arrays(
         }
     }
 
+    // finally populating the array with the varying combos
     for card in combo {
         let rank = card.rank as usize;
         let suit = card.suit as usize;
