@@ -2,7 +2,6 @@ pub mod card;
 pub mod deck;
 pub mod error;
 pub mod prelude;
-pub mod range;
 pub mod rank;
 pub mod result;
 
