@@ -30,7 +30,7 @@ pub enum Rank {
 }
 
 /// Card
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, Hash, Ord, PartialOrd)]
 pub struct Card {
     pub rank: Rank,
     pub suit: Suit,
@@ -158,6 +158,12 @@ impl fmt::Display for Rank {
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}{}", self.rank, self.suit)
+    }
+}
+
+impl fmt::Debug for Card {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Card|{}{}|", self.rank, self.suit)
     }
 }
 
