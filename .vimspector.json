@@ -1,0 +1,11 @@
+{
+  "configurations": {
+    "launch": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${CARGO_TARGET_DIR}/debug/pkr"
+      }
+    }
+  }
+}
