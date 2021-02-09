@@ -16,7 +16,7 @@ fn high_card() {
         Card::from("9d").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::HighCard);
 
     // [K♣ T♦], [K♦ 8♠] | 8♦ 2♣ 6♦ | 9♠ | 5♣	¯\_(ツ)_/¯ Pair vs. Pair
@@ -31,7 +31,7 @@ fn high_card() {
         Card::from("5c").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::HighCard);
 
     //[K❤ 8♦], [9❤ 8❤] | J♠ 7♦ 2❤ | K♦ | 5♦	¯\_(ツ)_/¯ Pair vs. Pair
@@ -45,7 +45,7 @@ fn high_card() {
         Card::from("5d").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::HighCard);
 }
 
@@ -65,12 +65,12 @@ fn high_card_vs_high_card() {
     let cards = [Card::from("Ad").unwrap(), Card::from("3c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     let cards = [Card::from("Ah").unwrap(), Card::from("8c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     assert_eq!(result1.hand_rank, HandRank::HighCard);
     assert_eq!(result2.hand_rank, HandRank::HighCard);
@@ -92,7 +92,7 @@ fn pair_flop() {
         Card::from("3c").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Pair(Rank::King));
 }
 
@@ -111,13 +111,13 @@ fn pair_vs_pair() {
         Card::from("2h").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Pair(Rank::Eight));
 
     let cards = [Card::from("6s").unwrap(), Card::from("4h").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result2.hand_rank, HandRank::Pair(Rank::Eight));
     assert_eq!(result1 > result2, true);
 }
@@ -138,7 +138,7 @@ fn two_pair() {
     let cards = [Card::from("Qc").unwrap(), Card::from("3d").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(
         result.hand_rank,
         HandRank::TwoPair(Rank::Queen, Rank::Three)
@@ -161,7 +161,7 @@ fn two_pairs_paired_board_and_river() {
         Card::from("Kh").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::TwoPair(Rank::King, Rank::Three));
 }
 
@@ -179,14 +179,14 @@ fn two_pair_vs_two_pair() {
     let cards = [Card::from("7c").unwrap(), Card::from("4d").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::TwoPair(Rank::Six, Rank::Four));
     assert_eq!(result1.num_ranks, &[0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
 
     let cards = [Card::from("9s").unwrap(), Card::from("3d").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result2.hand_rank, HandRank::TwoPair(Rank::Six, Rank::Three));
 
     // 64 vs 63
@@ -204,7 +204,7 @@ fn two_pair_vs_two_pair() {
     let cards = [Card::from("Ks").unwrap(), Card::from("Qc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(
         result1.hand_rank,
         HandRank::TwoPair(Rank::Queen, Rank::Four)
@@ -213,7 +213,7 @@ fn two_pair_vs_two_pair() {
     let cards = [Card::from("9d").unwrap(), Card::from("3h").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result2.hand_rank, HandRank::TwoPair(Rank::Nine, Rank::Four));
 
     // TwoPair(Q4) > TwoPair(94)
@@ -231,13 +231,13 @@ fn two_pair_vs_two_pair() {
     let cards = [Card::from("Ts").unwrap(), Card::from("5c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::TwoPair(Rank::Eight, Rank::Six));
 
     let cards = [Card::from("Ad").unwrap(), Card::from("3c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result2.hand_rank, HandRank::TwoPair(Rank::Ace, Rank::Eight));
     assert_eq!(result1.hand_rank > result2.hand_rank, false);
     // TwoPair(A8) > TwoPair(86)
@@ -259,7 +259,7 @@ fn two_pairs_with_pocket_pairs() {
         Card::from("4s").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::TwoPair(Rank::Eight, Rank::Six));
 }
 
@@ -278,7 +278,7 @@ fn trips_runner_runner() {
         Card::from("9d").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Trips(Rank::Nine));
 }
 
@@ -297,7 +297,7 @@ fn trips_on_turn_high_card() {
         Card::from("Kh").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Trips(Rank::Nine));
 }
 
@@ -316,7 +316,7 @@ fn trips_on_turn_low_card() {
         Card::from("Kh").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Trips(Rank::Three));
 }
 
@@ -335,7 +335,7 @@ fn trips_on_river_a6() {
         Card::from("Ad").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Trips(Rank::Ace));
 }
 
@@ -355,7 +355,7 @@ fn trips_on_river_kj() {
     ];
 
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Trips(Rank::King));
 }
 
@@ -374,12 +374,12 @@ fn trips_flopped() {
         Card::from("Ks").unwrap(),
     ];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     let cards = [Card::from("9d").unwrap(), Card::from("7h").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     assert_eq!(result1.hand_rank, HandRank::Trips(Rank::Six));
     assert_eq!(result2.hand_rank, HandRank::Flush(12));
@@ -400,13 +400,13 @@ fn straight_vs_straight() {
     let cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Straight(Rank::King));
 
     let cards = [Card::from("7c").unwrap(), Card::from("8c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result2.hand_rank, HandRank::Straight(Rank::Jack));
 
     assert_eq!(result1 > result2, true);
@@ -426,7 +426,7 @@ fn straights() {
     let cards = [Card::from("Qc").unwrap(), Card::from("8h").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Straight(Rank::Queen));
 
     let community_cards = [
@@ -440,7 +440,7 @@ fn straights() {
     let cards = [Card::from("7c").unwrap(), Card::from("Jh").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Straight(Rank::Jack));
 }
 
@@ -458,7 +458,7 @@ fn straight_five_high() {
     let cards = [Card::from("4c").unwrap(), Card::from("5h").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Straight(Rank::Five));
 }
 
@@ -476,7 +476,7 @@ fn straight_and_flush() {
     let cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Flush(29));
 }
 
@@ -494,7 +494,7 @@ fn full_house_on_board() {
     let cards = [Card::from("Qc").unwrap(), Card::from("Jc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::FullHouse(Rank::Ace, Rank::King));
 }
 
@@ -512,7 +512,7 @@ fn full_house_flopped() {
     let cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::FullHouse(Rank::Ace, Rank::King));
 }
 
@@ -533,7 +533,7 @@ fn full_house_paired_board_on_river() {
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
 
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(
         result.hand_rank,
         HandRank::FullHouse(Rank::Seven, Rank::Ace)
@@ -556,7 +556,7 @@ fn full_house_paired_board_and_river() {
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
 
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::FullHouse(Rank::Five, Rank::Two));
 }
 
@@ -576,7 +576,7 @@ fn full_house_pockets_and_board_paired_on_river() {
     let cards = [Card::from("8h").unwrap(), Card::from("8s").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(
         result.hand_rank,
         HandRank::FullHouse(Rank::Eight, Rank::Queen)
@@ -597,13 +597,13 @@ fn quads_on_board() {
     let cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Quads(Rank::Ace));
 
     let cards = [Card::from("Tc").unwrap(), Card::from("9c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result2.hand_rank, HandRank::Quads(Rank::Ace));
 
     // better Kicker
@@ -624,12 +624,12 @@ fn flush_vs_flush() {
     let cards = [Card::from("Jh").unwrap(), Card::from("7c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     let cards = [Card::from("Th").unwrap(), Card::from("7c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result1.hand_rank, HandRank::Flush(21));
     assert_eq!(result2.hand_rank, HandRank::Flush(20));
     assert_eq!(result1 > result2, true);
@@ -646,12 +646,12 @@ fn flush_vs_flush() {
     let cards = [Card::from("3s").unwrap(), Card::from("2c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     let cards = [Card::from("Ad").unwrap(), Card::from("As").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     assert_eq!(result1.hand_rank, HandRank::Flush(19));
     assert_eq!(result1.num_ranks, &[1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0]);
@@ -671,12 +671,12 @@ fn flush_vs_flush() {
     let cards = [Card::from("Ks").unwrap(), Card::from("2c").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result1 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result1 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     let cards = [Card::from("Qs").unwrap(), Card::from("Ac").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result2 = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result2 = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
 
     assert_eq!(result1.hand_rank, HandRank::Flush(32));
     assert_eq!(result1.num_ranks, &[1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1]);
@@ -702,7 +702,7 @@ fn flush_with_one_on_turn() {
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
 
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::Flush(12));
 }
 
@@ -720,38 +720,26 @@ fn straightflush() {
     let cards = [Card::from("Qc").unwrap(), Card::from("Kc").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
     assert_eq!(result.hand_rank, HandRank::StraightFlush(Rank::King));
 }
 
 #[test]
 fn royalflush() {
     let combo = vec![];
-    let community_cards = [
-        Card::from("Qc").unwrap(),
-        Card::from("Jc").unwrap(),
-        Card::from("Tc").unwrap(),
-        Card::from("3c").unwrap(),
-        Card::from("Jc").unwrap(),
-    ];
 
-    let cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
-    let holding = vec![&cards[..]];
-    let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
-    assert_eq!(result.hand_rank, HandRank::RoyalFlush);
-
+    // RoyalFlush: A♠ A♦ K♠ Q♠ J♠ T❤ 9♠
     let community_cards = [
+        Card::from("Ac").unwrap(),
         Card::from("Qs").unwrap(),
-        Card::from("Jc").unwrap(),
-        Card::from("Tc").unwrap(),
-        Card::from("3c").unwrap(),
-        Card::from("Jc").unwrap(),
+        Card::from("Js").unwrap(),
+        Card::from("Th").unwrap(),
+        Card::from("9s").unwrap(),
     ];
-
-    let cards = [Card::from("Ac").unwrap(), Card::from("Kc").unwrap()];
+    let cards = [Card::from("As").unwrap(), Card::from("Ks").unwrap()];
     let holding = vec![&cards[..]];
     let (ranks, num_ranks, num_suits) = setup_arrays(&holding, &community_cards, &combo);
-    let result = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    let result = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+    assert_ne!(result.hand_rank, HandRank::RoyalFlush);
     assert_eq!(result.hand_rank, HandRank::Straight(Rank::Ace));
 }
