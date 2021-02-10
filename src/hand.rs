@@ -2,7 +2,7 @@ use crate::card::*;
 use crate::hand_rank::*;
 use std::cmp::Ordering;
 
-/// HandResult
+/// Hand
 #[derive(Debug)]
 pub struct Hand<'a> {
     pub ranks: &'a [[usize; 4]; 13],
@@ -87,9 +87,9 @@ pub fn suit_rank(ranks: &[[usize; 4]; 13], suit: usize) -> usize {
 pub fn high_cards(num_ranks: [usize; 13], amount: usize) -> usize {
     let mut rank_sum = 0;
     let mut i = 0;
-    for (idx, num) in num_ranks.iter().rev().enumerate() {
+    for (rank, num) in num_ranks.iter().rev().enumerate() {
         if *num == 1 {
-            rank_sum += 12 - idx;
+            rank_sum += 12 - rank;
             i += num;
         }
         if i == amount {
@@ -99,13 +99,40 @@ pub fn high_cards(num_ranks: [usize; 13], amount: usize) -> usize {
     rank_sum
 }
 
+/**
+ * Returns the computed `HandRank`.
+ *
+ * since we're iterating over the `num_ranks` array in reverse order, the Card::Ranks get reversed
+ * too. Hence
+ *
+ * enum Rank {
+ *           norm_rank       card_rank
+ *   Two,        0      ->      12
+ *   Three,      1      ->      11
+ *   Four,       2      ->      10
+ *   Five,       3      ->       9
+ *   Six,        4      ->       8
+ *   Seven,      5      ->       7
+ *   Eight,      6      ->       6
+ *   Nine,       7      ->       5
+ *   Ten,        8      ->       4
+ *   Jack,       9      ->       3
+ *   Queen,     10      ->       2
+ *   King,      11      ->       1
+ *   Ace,       12      ->       0
+ */
 fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4]) -> HandRank {
-    let mut straight_high = 0;
-    let mut straight_ace = false;
-    let mut last_idx = 0;
+    // what was the last card rank
+    let mut last_rank = 0;
+    // how many connected cards do we have
     let mut connected = 0;
     let mut has_straight = false;
+    // highest card of a straight
+    let mut straight_high = 0;
+    // does the straight have an ace?
+    let mut straight_ace = false;
 
+    let mut connected_suits: [usize; 4] = [0, 0, 0, 0];
     let mut observed_suits: [usize; 4] = [0, 0, 0, 0];
 
     let mut pairs: [Option<Rank>; 2] = [None, None];
@@ -113,8 +140,9 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
     let mut quads: Option<Rank> = None;
     let mut full_house: bool = false;
 
-    // iterating over the num_ranks array
-    for (idx, amount) in num_ranks.iter().rev().enumerate() {
+    // NOTE that we're iterating over the reversed `num_ranks` array!! Hence `card_rank` (index) of
+    // 0 represents an Ace instead of a Two
+    for (card_rank, amount) in num_ranks.iter().rev().enumerate() {
         let num = *amount;
         if num == 0 {
             continue;
@@ -122,50 +150,50 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
 
         if num == 2 {
             if trips.is_some() {
+                // if we already have trips, we now have a full house
                 full_house = true;
             }
 
             if !pairs[1].is_some() {
                 if let Some(_rank) = pairs[0] {
-                    pairs[1] = Some(Rank::from(12 - idx));
+                    pairs[1] = Some(Rank::from(12 - card_rank));
                 } else {
-                    pairs[0] = Some(Rank::from(12 - idx));
+                    pairs[0] = Some(Rank::from(12 - card_rank));
                 }
             }
         }
 
         if num == 3 {
-            trips = Some(Rank::from(12 - idx));
+            trips = Some(Rank::from(12 - card_rank));
             if pairs[0].is_some() || pairs[1].is_some() {
                 full_house = true;
             }
         }
 
         if num == 4 {
-            quads = Some(Rank::from(12 - idx));
+            quads = Some(Rank::from(12 - card_rank));
         }
 
-        // whereever we start the first observation of a particular card
-        // connected is set to Zero and straight_high to the idx position
-        // TODO: since `!has_straight` prevents `connectted` from getting reset
-        // we could use that to detect A2345 straights
+        // TODO: since `!has_straight` prevents `connectted` from getting reset we could use that
+        // to detect A2345 straights
         if num > 0 && !has_straight {
-            // reset `connected` and `straight_high` when idx is positive
-            // and the last_idx is not the previous one
-            if idx > 0 && last_idx != idx - 1 {
+            if card_rank > 0 && last_rank != card_rank - 1 {
+                // reset `connected` and `straight_high` when `card_rank` is positive and the
+                // last_rank is not the previous one
                 connected = 0;
-                straight_high = idx;
-            } else if idx == 0 {
+                straight_high = card_rank;
+            } else if card_rank == 0 {
                 straight_ace = true;
-                straight_high = idx;
-            } else if idx == 1 && !straight_ace {
-                straight_high = idx;
+                straight_high = card_rank;
+            } else if card_rank == 1 && !straight_ace {
+                straight_high = card_rank;
             }
             // increment
             connected += 1;
-            last_idx = idx;
+            last_rank = card_rank;
         }
 
+        // TODO change 9 with card::Rank
         if connected == 5 || connected == 4 && straight_high == 9 && straight_ace {
             has_straight = true;
         }
@@ -186,6 +214,7 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
         }
         for num_suit in observed_suits.iter() {
             if *num_suit == 5 {
+                // TODO here we need to check if the street is composed of 5 cards of the same suit
                 if straight_high == 0 {
                     return HandRank::RoyalFlush;
                 }
