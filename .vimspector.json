@@ -4,7 +4,8 @@
       "adapter": "CodeLLDB",
       "configuration": {
         "request": "launch",
-        "program": "${CARGO_TARGET_DIR}/debug/pkr"
+        "program": "${CARGO_TARGET_DIR}/debug/pkr",
+        "args": ["eval", "AsKs", "JhKh"]
       }
     }
   }
