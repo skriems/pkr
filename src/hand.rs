@@ -132,8 +132,6 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
     // does the straight have an ace?
     let mut straight_ace = false;
 
-    let mut observed_suits: [usize; 4] = [0, 0, 0, 0];
-
     let mut pairs: [Option<Rank>; 2] = [None, None];
     let mut trips: Option<Rank> = None;
     let mut quads: Option<Rank> = None;
@@ -208,17 +206,21 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
         if norm_rank < 5 {
             norm_rank = 5;
         }
-        let start = norm_rank - 5;
+        let start = norm_rank - 4;
 
         // same conecpt like `last_rank`
         let mut prev_rank = start;
+        let mut observed_suits: [usize; 4] = [0, 0, 0, 0];
+
         // norm_rank + 1 b/c upper bound is exclusive
         for rank in start..norm_rank + 1 {
             for (suit, num) in ranks[rank].iter().enumerate() {
-                if rank > 0 && prev_rank == rank - 1 {
-                    observed_suits[suit] += num;
-                } else if rank == 0 {
-                    observed_suits[suit] += num;
+                if num > &0 {
+                    if rank > 0 && ranks[prev_rank][suit] == 1 {
+                        observed_suits[suit] += num;
+                    } else if rank == 0 && ranks[prev_rank][suit] == 1 {
+                        observed_suits[suit] += num;
+                    }
                 }
             }
             prev_rank = rank;
