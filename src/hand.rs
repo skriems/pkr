@@ -66,17 +66,17 @@ impl<'a> PartialOrd for Hand<'a> {
 }
 
 /// return the sum of 5 `Ranks` for a given `Suit`
+/// TODO this could be incorporated into the big fat loop in `ranks`
 pub fn suit_rank(ranks: &[[usize; 4]; 13], suit: usize) -> usize {
     let mut rank_sum = 0;
+    let mut counted = 0;
     for (rank, suits) in ranks.iter().rev().enumerate() {
-        // if rank > 12 {
-        //     rank = 12;
-        // }
         if suits[suit] > 0 {
-            rank_sum += 12 - rank
+            rank_sum += 12 - rank;
+            counted += 1;
         }
 
-        if rank == 4 {
+        if counted == 5 {
             break;
         }
     }
@@ -306,6 +306,29 @@ mod tests {
 
         assert_eq!(result.hand_rank, HandRank::Pair(Rank::Eight));
         assert_eq!(result.num_ranks, &[1, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 1, 1]);
+    }
+
+    #[test]
+    fn test_suit_rank() {
+        let ranks = [
+            // clubs, spades, hearts, diamonds
+            [0, 0, 0, 0], // Two
+            [0, 0, 0, 0], // Three
+            [0, 0, 0, 0], // Four
+            [0, 0, 0, 0], // Five
+            [0, 0, 0, 0], // Six
+            [0, 0, 0, 0], // Seven
+            [0, 0, 0, 0], // Eight
+            [0, 0, 1, 0], // Nine
+            [0, 0, 1, 0], // Ten
+            [0, 0, 1, 0], // Jack
+            [0, 0, 1, 0], // Queen
+            [0, 0, 1, 0], // King
+            [0, 0, 1, 0], // Ace
+        ];
+        // assert that we only count the 5 highest cards
+        // 12 + 11 + 10 + 9 + 8
+        assert_eq!(suit_rank(&ranks, 2), 50);
     }
 
     #[test]
