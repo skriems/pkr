@@ -132,7 +132,6 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
     // does the straight have an ace?
     let mut straight_ace = false;
 
-    let mut connected_suits: [usize; 4] = [0, 0, 0, 0];
     let mut observed_suits: [usize; 4] = [0, 0, 0, 0];
 
     let mut pairs: [Option<Rank>; 2] = [None, None];
@@ -174,18 +173,20 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
             quads = Some(Rank::from(12 - card_rank));
         }
 
-        // TODO: since `!has_straight` prevents `connectted` from getting reset we could use that
-        // to detect A2345 straights
+        // The next block of code determines, if hero has a straight. It increments `connected` if
+        // we've seen `last_rank` or resets it to 0 if not.
+        // A2345 straights mark a special case since the algorythm only detects four consecutive
+        // cards (2345), so we need `straight_ace` as a helper variable.
         if num > 0 && !has_straight {
             if card_rank > 0 && last_rank != card_rank - 1 {
-                // reset `connected` and `straight_high` when `card_rank` is positive and the
-                // last_rank is not the previous one
                 connected = 0;
                 straight_high = card_rank;
             } else if card_rank == 0 {
                 straight_ace = true;
                 straight_high = card_rank;
             } else if card_rank == 1 && !straight_ace {
+                // since we're initializing `last_rank` to 0 (Ace) the code jumbs over the first if
+                // statement. Hence, for an KQJT9 straight, we need this branch...
                 straight_high = card_rank;
             }
             // increment
@@ -193,24 +194,34 @@ fn rank(ranks: &[[usize; 4]; 13], num_ranks: &[usize; 13], num_suits: &[usize; 4
             last_rank = card_rank;
         }
 
-        // TODO change 9 with card::Rank
+        // we either have 5 connected cards or a A2345 straight
         if connected == 5 || connected == 4 && straight_high == 9 && straight_ace {
             has_straight = true;
         }
     }
 
-    // check RoyalFlush, StraightFlush
+    // If the code above has determined a straight, check if we have a StraightFlush or even
+    // RoyalFlush. We're iterating over the `[straight_high - 5..straight_high]` cards, check if
+    // have seen the `prev_rank` (same conecpt as `last_rank` really) in the same suit
     if has_straight {
         let mut norm_rank = 12 - straight_high;
         if norm_rank < 5 {
             norm_rank = 5;
         }
         let start = norm_rank - 5;
+
+        // same conecpt like `last_rank`
+        let mut prev_rank = start;
         // norm_rank + 1 b/c upper bound is exclusive
         for rank in start..norm_rank + 1 {
             for (suit, num) in ranks[rank].iter().enumerate() {
-                observed_suits[suit] += num;
+                if rank > 0 && prev_rank == rank - 1 {
+                    observed_suits[suit] += num;
+                } else if rank == 0 {
+                    observed_suits[suit] += num;
+                }
             }
+            prev_rank = rank;
         }
         for num_suit in observed_suits.iter() {
             if *num_suit == 5 {
