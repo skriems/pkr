@@ -6,35 +6,6 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 
-// fn rnd(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, iterations: usize) {
-//     let mut remaining: Vec<&Card> = deck.iter().collect();
-//     let mut rng = ThreadRng::default();
-
-//     // Stats
-//     let mut num_combos = 0;
-//     let k = 5 - community_cards.len();
-
-//     let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
-
-//     while num_combos < iterations {
-//         remaining.shuffle(&mut rng);
-//         let combo = &remaining[..k];
-//         let (ranks, num_ranks, num_suits) = setup_arrays(&holdings, &community_cards, &combo);
-//         let hero = HandResult::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
-//         let vilan = HandResult::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
-
-//         if hero > vilan {
-//             if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
-//                 *count += 1;
-//             } else {
-//                 stats.insert(usize::from(&hero.hand_rank), 1);
-//             }
-//         }
-//         num_combos += 1;
-//     }
-//     print_rnd(stats, num_combos);
-// }
-
 fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>) {
     // Stats
     let mut num_combos = 0;
@@ -169,14 +140,6 @@ fn main() -> Result<()> {
     if cmd == "eval" {
         combos(holdings, community_cards, deck);
     }
-
-    // } else if cmd == "rnd" {
-    //     if let Ok(iterations) = &args[2].parse::<usize>() {
-    //         rnd(holdings, community_cards, deck, *iterations, true);
-    //     } else {
-    //         print_usage();
-    //     }
-    // }
 
     if cmd == "test" {
         let deck = Deck::new();

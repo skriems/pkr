@@ -103,29 +103,12 @@ pub fn setup_arrays(
     (ranks, num_ranks, num_suits)
 }
 
-pub fn print_rnd(stats: HashMap<usize, usize>, num: usize) {
-    println!("evaluated {} random hands", num);
-    println!("-> hero wins with:");
-    let mut wins = 0;
-    for i in 0..9 {
-        if let Some((_rank, n)) = stats.get_key_value(&i) {
-            wins += n;
-            println!(
-                "{:>11}: {:>6.2}% ({})",
-                format!("{}", hand_rank::HandRank::from(i)),
-                *n as f64 * 100.0 / num as f64,
-                n
-            );
-        }
-    }
-}
-
 pub fn print_combos(stats: HashMap<usize, usize>, num: usize, k: usize, len: usize) {
     println!("evaluated {} combinations for {}/{} cards", num, k, len);
     println!("-> hero wins with:");
 
-    let mut wins = 0;
     for i in 0..9 {
+        let mut wins = 0;
         if let Some((_rank, n)) = stats.get_key_value(&i) {
             wins += n;
             println!(
