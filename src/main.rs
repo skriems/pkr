@@ -6,29 +6,6 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 
-struct StringChunks<'a> {
-    slice: &'a str,
-    step: usize,
-}
-
-impl<'a> StringChunks<'a> {
-    fn new(slice: &'a str, step: usize) -> StringChunks<'a> {
-        StringChunks { slice, step }
-    }
-}
-
-impl<'a> Iterator for StringChunks<'a> {
-    type Item = &'a str;
-    fn next(&mut self) -> Option<&'a str> {
-        if self.slice.is_empty() {
-            return None;
-        }
-        let (ret, rest) = self.slice.split_at(self.step);
-        self.slice = rest;
-        Some(ret)
-    }
-}
-
 // fn rnd(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>, iterations: usize) {
 //     let mut remaining: Vec<&Card> = deck.iter().collect();
 //     let mut rng = ThreadRng::default();
@@ -70,19 +47,19 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>)
         let hero = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
         let vilan = Hand::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
 
-        if hero.hand_rank == HandRank::RoyalFlush {
-            print!("{:?}: ", &hero.hand_rank);
-            for (rank, card_array) in ranks[0].iter().rev().enumerate() {
-                for (idx, suit) in card_array.iter().enumerate() {
-                    if *suit == 1 as usize {
-                        print!("{} ", Card::new(Rank::from(12 - rank), Suit::from(idx)));
+        if hero > vilan {
+            if hero.hand_rank == HandRank::RoyalFlush {
+                print!("{:?}: ", &hero.hand_rank);
+                for (rank, card_array) in ranks[0].iter().rev().enumerate() {
+                    for (idx, suit) in card_array.iter().enumerate() {
+                        if *suit == 1 as usize {
+                            print!("{} ", Card::new(Rank::from(12 - rank), Suit::from(idx)));
+                        }
                     }
                 }
+                println!("");
             }
-            println!("");
-        }
 
-        if hero > vilan {
             if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
                 *count += 1;
             } else {

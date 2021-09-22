@@ -1,4 +1,5 @@
 pub mod card;
+pub mod cli;
 pub mod deck;
 pub mod error;
 pub mod hand;
