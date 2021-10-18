@@ -3,7 +3,7 @@ use std::fmt;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum HandRank {
-    HighCard,
+    HighCard(Rank),
     Pair(Rank),
     TwoPair(Rank, Rank),
     Trips(Rank),
@@ -18,7 +18,7 @@ pub enum HandRank {
 impl fmt::Display for HandRank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            HandRank::HighCard => write!(f, "HighCard"),
+            HandRank::HighCard(ref _r) => write!(f, "HighCard"),
             HandRank::Pair(ref _r) => write!(f, "Pair"),
             HandRank::TwoPair(ref _r, ref _n) => write!(f, "TwoPair"),
             HandRank::Trips(ref _r) => write!(f, "Trips"),
@@ -35,7 +35,7 @@ impl fmt::Display for HandRank {
 impl From<&HandRank> for usize {
     fn from(rank: &HandRank) -> Self {
         match rank {
-            HandRank::HighCard => 0,
+            HandRank::HighCard(ref _r) => 0,
             HandRank::Pair(ref _r) => 1,
             HandRank::TwoPair(ref _r, ref _n) => 2,
             HandRank::Trips(ref _r) => 3,
@@ -52,7 +52,7 @@ impl From<&HandRank> for usize {
 impl From<usize> for HandRank {
     fn from(n: usize) -> Self {
         match n {
-            0 => HandRank::HighCard,
+            0 => HandRank::HighCard(Rank::Ace),
             1 => HandRank::Pair(Rank::Ace),
             2 => HandRank::TwoPair(Rank::Ace, Rank::Ace),
             3 => HandRank::Trips(Rank::Ace),

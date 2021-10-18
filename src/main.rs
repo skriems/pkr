@@ -6,6 +6,26 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::process;
 
+fn print_result(ranks: &[[[usize; 4]; 13]; 2], hand_rank: &HandRank, other: &HandRank) {
+    println!("{:?} vs {:?} ", hand_rank, other);
+    for (rank, card_array) in ranks[0].iter().rev().enumerate() {
+        for (idx, suit) in card_array.iter().enumerate() {
+            if *suit == 1 as usize {
+                print!("{} ", Card::new(Rank::from(12 - rank), Suit::from(idx)));
+            }
+        }
+    }
+    print!(" vs ");
+    for (rank, card_array) in ranks[1].iter().rev().enumerate() {
+        for (idx, suit) in card_array.iter().enumerate() {
+            if *suit == 1 as usize {
+                print!("{} ", Card::new(Rank::from(12 - rank), Suit::from(idx)));
+            }
+        }
+    }
+    println!("");
+}
+
 fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>) {
     // Stats
     let mut num_combos = 0;
@@ -13,28 +33,31 @@ fn combos(holdings: Vec<&[Card]>, community_cards: &[Card], deck: HashSet<Card>)
 
     let mut stats: HashMap<usize, usize> = HashMap::with_capacity(10);
 
+    let h = Hand::new(holdings[0], community_cards);
+    let v = Hand::new(holdings[1], community_cards);
+
     for combo in deck.iter().combinations(k) {
-        let (ranks, num_ranks, num_suits) = setup_arrays(&holdings, &community_cards, &combo);
-        let hero = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
-        let vilan = Hand::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
+        // let (ranks, num_ranks, num_suits) = setup_arrays(&holdings, &community_cards, &combo);
 
-        if hero > vilan {
-            if hero.hand_rank == HandRank::RoyalFlush {
-                print!("{:?}: ", &hero.hand_rank);
-                for (rank, card_array) in ranks[0].iter().rev().enumerate() {
-                    for (idx, suit) in card_array.iter().enumerate() {
-                        if *suit == 1 as usize {
-                            print!("{} ", Card::new(Rank::from(12 - rank), Suit::from(idx)));
-                        }
-                    }
-                }
-                println!("");
-            }
+        let he = h.rank(combo.as_slice());
+        let vi = v.rank(combo.as_slice());
 
-            if let Some(count) = stats.get_mut(&usize::from(&hero.hand_rank)) {
+        // let hero = Hand::bare(&ranks[0], &num_ranks[0], &num_suits[0]);
+        // let vilan = Hand::bare(&ranks[1], &num_ranks[1], &num_suits[1]);
+
+        // if hero.hand_rank != he {
+        //     println!("{:?} vs. {:?}", hero.hand_rank, he)
+        // }
+        // if vilan.hand_rank != vi {
+        //     println!("{:?} vs. {:?}", vilan.hand_rank, vi)
+        // }
+
+        if he > vi {
+            // print_result(&ranks, &hero.hand_rank, &vilan.hand_rank);
+            if let Some(count) = stats.get_mut(&usize::from(&he)) {
                 *count += 1;
             } else {
-                stats.insert(usize::from(&hero.hand_rank), 1);
+                stats.insert(usize::from(&he), 1);
             }
         }
         num_combos += 1;

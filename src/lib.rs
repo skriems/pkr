@@ -107,7 +107,7 @@ pub fn print_combos(stats: HashMap<usize, usize>, num: usize, k: usize, len: usi
     println!("evaluated {} combinations for {}/{} cards", num, k, len);
     println!("-> hero wins with:");
 
-    for i in 0..9 {
+    for i in 0..10 {
         let mut wins = 0;
         if let Some((_rank, n)) = stats.get_key_value(&i) {
             wins += n;
