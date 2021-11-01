@@ -163,7 +163,7 @@ impl fmt::Display for Card {
 
 impl fmt::Debug for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Card |{}{}|", self.rank, self.suit)
+        write!(f, "|{}{}|", self.rank, self.suit)
     }
 }
 
