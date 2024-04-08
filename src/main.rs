@@ -27,7 +27,7 @@ fn combos(hero: Vec<Card>, vilan: Vec<Card>, community_cards: Vec<Card>, deck: H
                 stats.insert(usize::from(&h.rank), 1);
             }
         } else if h.rank == v.rank {
-            println!("{:?} vs {:?}", h.rank, v.rank)
+            // println!("{:?} vs {:?}", h.rank, v.rank)
         }
         num_combos += 1;
     }

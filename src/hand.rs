@@ -18,19 +18,18 @@ impl<'a> Hand<'a> {
     }
 
     /// return the sum of 5 `Ranks` for a given `Suit`
-    pub fn suit_rank(&self, suit: usize) -> usize {
+    pub fn suit_rank(&self, suit: Suit) -> usize {
         let mut rank_sum = 0;
         let mut counted = 0;
         for (rank, suits) in self.own.ranks.iter().rev().enumerate() {
-            if suits[suit] > 0 {
+            if suits[suit as usize] > 0 {
                 rank_sum += 12 - rank;
                 counted += 1;
             }
-            if self.combo.ranks[12 - rank][suit] > 0 {
+            if self.combo.ranks[12 - rank][suit as usize] > 0 {
                 rank_sum += 12 - rank;
                 counted += 1;
             }
-
             if counted == 5 {
                 break;
             }
@@ -41,18 +40,65 @@ impl<'a> Hand<'a> {
     /// return the sum of `Ranks` for a given `amount` Cards
     pub fn high_cards(&self, amount: usize) -> usize {
         let mut rank_sum = 0;
-        let mut i = 0;
-        for (rank, num) in self.own.num_ranks.iter().rev().enumerate() {
-            if *num == 1 {
-                rank_sum += 12 - rank;
-                rank_sum += self.combo.num_ranks[12 - rank];
-                i += num;
+        let mut counted = 0;
+
+        match self.rank {
+            HandRank::TwoPair(ref hr, ref lr) => {
+                for (rank, num) in self.own.num_ranks.iter().rev().enumerate() {
+                    if *num == 1 {
+                        let real_rank = 12 - rank;
+
+                        // ignore the ranks we've made TwoPair with
+                        let rank_enum = Rank::from(real_rank);
+                        if rank_enum == *hr || rank_enum == *lr {
+                            continue;
+                        }
+
+                        rank_sum += real_rank;
+                        rank_sum += self.combo.num_ranks[real_rank];
+                        counted += num;
+                    }
+                    if counted == amount {
+                        break;
+                    }
+                }
+                rank_sum
             }
-            if i == amount {
-                break;
+            HandRank::Quads(ref r) => {
+                for (rank, num) in self.own.num_ranks.iter().rev().enumerate() {
+                    if *num == 1 {
+                        let real_rank = 12 - rank;
+
+                        // ignore the rank we've made quads with
+                        let rank_enum = Rank::from(real_rank);
+                        if rank_enum == *r {
+                            continue;
+                        }
+
+                        rank_sum += real_rank;
+                        rank_sum += self.combo.num_ranks[real_rank];
+                        counted += num;
+                    }
+                    if counted == amount {
+                        break;
+                    }
+                }
+                rank_sum
+            }
+            _ => {
+                for (rank, num) in self.own.num_ranks.iter().rev().enumerate() {
+                    if *num == 1 {
+                        rank_sum += 12 - rank;
+                        rank_sum += self.combo.num_ranks[12 - rank];
+                        counted += num;
+                    }
+                    if counted == amount {
+                        break;
+                    }
+                }
+                rank_sum
             }
         }
-        rank_sum
     }
 }
 
@@ -60,9 +106,7 @@ impl<'a> PartialEq for Hand<'a> {
     fn eq(&self, other: &Self) -> bool {
         match self.rank {
             HandRank::HighCard => self.high_cards(5).eq(&other.high_cards(5)),
-            HandRank::Flush(ref suit) => self
-                .suit_rank(*suit as usize)
-                .eq(&other.suit_rank(*suit as usize)),
+            HandRank::Flush(ref suit) => self.suit_rank(*suit).eq(&other.suit_rank(*suit)),
             _ => self.rank.eq(&other.rank),
         }
     }
@@ -70,16 +114,39 @@ impl<'a> PartialEq for Hand<'a> {
 
 impl<'a> PartialOrd for Hand<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if self.rank == other.rank {
-            match self.rank {
-                HandRank::HighCard => self.high_cards(5).partial_cmp(&other.high_cards(5)),
-                HandRank::Flush(ref suit) => self
-                    .suit_rank(*suit as usize)
-                    .partial_cmp(&other.suit_rank(*suit as usize)),
-                _ => self.rank.partial_cmp(&other.rank),
+        match (&self.rank, &other.rank) {
+            (HandRank::HighCard, HandRank::HighCard) => {
+                self.high_cards(5).partial_cmp(&other.high_cards(5))
             }
-        } else {
-            self.rank.partial_cmp(&other.rank)
+            (HandRank::Pair(ref rank), HandRank::Pair(ref other_rank)) => {
+                if rank == other_rank {
+                    self.high_cards(5).partial_cmp(&other.high_cards(5))
+                } else {
+                    rank.partial_cmp(other_rank)
+                }
+            }
+            (HandRank::TwoPair(ref hr, ref lr), HandRank::TwoPair(ref ohr, ref olr)) => {
+                if hr == ohr && lr == olr {
+                    // high_rank low_rank
+                    self.high_cards(1).partial_cmp(&other.high_cards(1))
+                } else {
+                    self.rank.partial_cmp(&other.rank)
+                }
+            }
+            (HandRank::Quads(ref rank), HandRank::Quads(ref other_rank)) => {
+                if rank == other_rank {
+                    self.high_cards(1).partial_cmp(&other.high_cards(1))
+                } else {
+                    self.rank.partial_cmp(&other.rank)
+                }
+            }
+
+            // HandRank::Trips(ref _r) => self.high_cards(2).partial_cmp(&other.high_cards(2)),
+            // HandRank::Straight(ref _r) => self.rank.partial_cmp(&other.rank),
+            (HandRank::Flush(ref suit), HandRank::Flush(ref other_suit)) => self
+                .suit_rank(*suit)
+                .partial_cmp(&other.suit_rank(*other_suit)),
+            _ => self.rank.partial_cmp(&other.rank),
         }
     }
 }
@@ -125,7 +192,7 @@ mod tests {
 
         // test
         assert_eq!(
-            hand.suit_rank(Suit::Clubs as usize),
+            hand.suit_rank(Suit::Clubs),
             Card::from("8c").unwrap().rank as usize
         );
 
@@ -143,7 +210,7 @@ mod tests {
 
         // test
         assert_eq!(
-            hand.suit_rank(Suit::Diamonds as usize),
+            hand.suit_rank(Suit::Diamonds),
             Card::from("Jd").unwrap().rank as usize
                 + Card::from("Ad").unwrap().rank as usize
                 + Card::from("8d").unwrap().rank as usize
@@ -164,11 +231,35 @@ mod tests {
 
         // test
         assert_eq!(
-            hand.suit_rank(Suit::Clubs as usize),
+            hand.suit_rank(Suit::Clubs),
             Card::from("Jc").unwrap().rank as usize
                 + Card::from("Ac").unwrap().rank as usize
                 + Card::from("8c").unwrap().rank as usize
                 + Card::from("Kc").unwrap().rank as usize
+        );
+    }
+
+    #[test]
+    fn high_cards() {
+        let combo: Vec<&Card> = vec![];
+        let community_cards = [
+            Card::from("Jd").unwrap(),
+            Card::from("Ad").unwrap(),
+            Card::from("8d").unwrap(),
+            Card::from("9c").unwrap(),
+            Card::from("2h").unwrap(),
+        ];
+        let holdings = [Card::from("Kd").unwrap(), Card::from("Qh").unwrap()];
+        let raw_cards = RawData::from_chain(holdings.iter().chain(community_cards.iter()));
+        let hand = Hand::new(&raw_cards, &combo);
+        assert_eq!(hand.rank, HandRank::HighCard);
+        assert_eq!(
+            hand.high_cards(5),
+            Card::from("Ad").unwrap().rank as usize
+                + Card::from("Kd").unwrap().rank as usize
+                + Card::from("Qh").unwrap().rank as usize
+                + Card::from("Jd").unwrap().rank as usize
+                + Card::from("9c").unwrap().rank as usize
         );
     }
 

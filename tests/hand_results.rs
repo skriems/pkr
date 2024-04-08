@@ -3,7 +3,6 @@ use pkr::prelude::*;
 #[test]
 fn high_card() {
     let combo: Vec<&Card> = vec![];
-    // [J♦ T♣], [7❤ 4♦] | Q♦ J♠ 2❤ | T❤ | 9♦
     let holdings = [Card::from("7h").unwrap(), Card::from("4d").unwrap()];
     let community_cards = [
         Card::from("Qd").unwrap(),
@@ -17,7 +16,6 @@ fn high_card() {
     let hand = Hand::new(&raw_cards, &combo);
     assert_eq!(hand.rank, HandRank::HighCard);
 
-    // [K♣ T♦], [K♦ 8♠] | 8♦ 2♣ 6♦ | 9♠ | 5♣	¯\_(ツ)_/¯ Pair vs. Pair
     let holdings = [Card::from("Kc").unwrap(), Card::from("Td").unwrap()];
     let community_cards = [
         Card::from("8d").unwrap(),
@@ -31,7 +29,6 @@ fn high_card() {
     let hand = Hand::new(&raw_cards, &combo);
     assert_eq!(hand.rank, HandRank::HighCard);
 
-    //[K❤ 8♦], [9❤ 8❤] | J♠ 7♦ 2❤ | K♦ | 5♦	¯\_(ツ)_/¯ Pair vs. Pair
     let holdings = [Card::from("9h").unwrap(), Card::from("8h").unwrap()];
     let community_cards = [
         Card::from("Js").unwrap(),
@@ -49,7 +46,6 @@ fn high_card() {
 #[test]
 fn high_card_vs_high_card() {
     let combo: Vec<&Card> = vec![];
-    // [A♦ 3♣], [A❤ 8♣] | T♠ 5♠ 9♠ | K♦ | Q♦	¯\_(ツ)_/¯ HighCard vs. HighCard
     let community_cards = [
         Card::from("Ts").unwrap(),
         Card::from("5s").unwrap(),
@@ -91,7 +87,6 @@ fn pair_flop() {
 #[test]
 fn pair_vs_pair() {
     let combo: Vec<&Card> = vec![];
-    // [6♠ 4❤], [K♦ 7❤] | J♦ A♠ 8♦ | 8♣ | 2❤	¯\_(ツ)_/¯ HighCard vs. HighCard
     let community_cards = [
         Card::from("Jd").unwrap(),
         Card::from("As").unwrap(),
@@ -113,9 +108,31 @@ fn pair_vs_pair() {
 }
 
 #[test]
+fn pair_vs_higher_pair() {
+    let combo: Vec<&Card> = vec![];
+    let community_cards = [
+        Card::from("Jd").unwrap(),
+        Card::from("As").unwrap(),
+        Card::from("8d").unwrap(),
+        Card::from("9c").unwrap(),
+        Card::from("2h").unwrap(),
+    ];
+    let holdings = [Card::from("Ad").unwrap(), Card::from("7h").unwrap()];
+    let raw_cards = RawData::from_chain(holdings.iter().chain(community_cards.iter()));
+    let hand1 = Hand::new(&raw_cards, &combo);
+
+    let holdings = [Card::from("Js").unwrap(), Card::from("4h").unwrap()];
+    let raw_cards = RawData::from_chain(holdings.iter().chain(community_cards.iter()));
+    let hand2 = Hand::new(&raw_cards, &combo);
+
+    assert_eq!(hand1.rank, HandRank::Pair(Rank::Ace));
+    assert_eq!(hand2.rank, HandRank::Pair(Rank::Jack));
+    assert_eq!(hand1 > hand2, true);
+}
+
+#[test]
 fn two_pair() {
     let combo: Vec<&Card> = vec![];
-    // [T♦ 3♠], [Q♣ 3♦] | 8♣ 3❤ 7♣ | 9♣ | Q♦	¯\_(ツ)_/¯ Pair vs. Pair
     let community_cards = [
         Card::from("8c").unwrap(),
         Card::from("3h").unwrap(),
@@ -133,7 +150,6 @@ fn two_pair() {
 #[test]
 fn two_pairs_paired_board_and_river() {
     let combo: Vec<&Card> = vec![];
-    // [A♠ K♣], [A♣ 7♣] | 4♦ 3♠ 3♦ | 6♠ | K❤    [A♠ K♣] wins with TwoPair
     let community_cards = [
         Card::from("4d").unwrap(),
         Card::from("3s").unwrap(),
@@ -149,9 +165,35 @@ fn two_pairs_paired_board_and_river() {
 }
 
 #[test]
+fn two_pair_vs_two_pair_high_card() {
+    let combo: Vec<&Card> = vec![];
+    let community_cards = [
+        Card::from("6h").unwrap(),
+        Card::from("4c").unwrap(),
+        Card::from("6s").unwrap(),
+        Card::from("Jc").unwrap(),
+        Card::from("3c").unwrap(),
+    ];
+    let holdings = [Card::from("Ac").unwrap(), Card::from("4d").unwrap()];
+    let raw_cards = RawData::from_chain(holdings.iter().chain(community_cards.iter()));
+    let hand1 = Hand::new(&raw_cards, &combo);
+
+    assert_eq!(hand1.rank, HandRank::TwoPair(Rank::Six, Rank::Four));
+    assert_eq!(hand1.high_cards(1), Rank::Ace as usize);
+
+    let holdings = [Card::from("Ks").unwrap(), Card::from("4h").unwrap()];
+    let raw_cards = RawData::from_chain(holdings.iter().chain(community_cards.iter()));
+    let hand2 = Hand::new(&raw_cards, &combo);
+    assert_eq!(hand2.rank, HandRank::TwoPair(Rank::Six, Rank::Four));
+    assert_eq!(hand2.high_cards(1), Rank::King as usize);
+
+    // hand1 wins due to Ace high
+    assert_eq!(hand1 > hand2, true);
+}
+
+#[test]
 fn two_pair_vs_two_pair() {
     let combo: Vec<&Card> = vec![];
-    // [7♣ 4♦], [9♠ 3♦] | 6❤ 4♣ 6♠ | J♣ | 3♣	¯\_(ツ)_/¯ TwoPair vs. TwoPair
     let community_cards = [
         Card::from("6h").unwrap(),
         Card::from("4c").unwrap(),
@@ -164,7 +206,6 @@ fn two_pair_vs_two_pair() {
     let hand1 = Hand::new(&raw_cards, &combo);
 
     assert_eq!(hand1.rank, HandRank::TwoPair(Rank::Six, Rank::Four));
-    // assert_eq!(hand1.num_ranks, &[0, 1, 2, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0]);
 
     let holdings = [Card::from("9s").unwrap(), Card::from("3d").unwrap()];
     let raw_cards = RawData::from_chain(holdings.iter().chain(community_cards.iter()));
@@ -174,7 +215,6 @@ fn two_pair_vs_two_pair() {
     // 64 vs 63
     assert_eq!(hand1 > hand2, true);
 
-    // [K♠ Q♣], [9♦ 3❤] | 4♠ Q♦ 7❤ | 4♣ | 9❤	[9♦ 3❤] wins with TwoPair
     let community_cards = [
         Card::from("4s").unwrap(),
         Card::from("Qd").unwrap(),
@@ -196,7 +236,6 @@ fn two_pair_vs_two_pair() {
     // TwoPair(Q4) > TwoPair(94)
     assert_eq!(hand1 > hand2, true);
 
-    // [T♠ 5♣], [A♦ 3♣] | A♣ 6♦ 8♣ | 8♦ | 6♣	¯\_(ツ)_/¯ TwoPair vs. TwoPair
     let community_cards = [
         Card::from("Ac").unwrap(),
         Card::from("6d").unwrap(),
@@ -222,7 +261,6 @@ fn two_pair_vs_two_pair() {
 #[test]
 fn two_pairs_with_pocket_pairs() {
     let combo: Vec<&Card> = vec![];
-    // [Q♦ 5♠], [6♣ 6♦] | T❤ 8♣ 8♠ | K♣ | 4♠	[6♣ 6♦] wins with Pair
     let holdings = [Card::from("6c").unwrap(), Card::from("6d").unwrap()];
 
     let community_cards = [
@@ -240,7 +278,6 @@ fn two_pairs_with_pocket_pairs() {
 #[test]
 fn trips_runner_runner() {
     let combo: Vec<&Card> = vec![];
-    // [T♦ 8♣], [9♠ 5♦] | 2♠ 4♦ T♣ | 9❤ | 9♦	[9♠ 5♦] wins with FullHouse
     let holdings = [Card::from("9s").unwrap(), Card::from("5d").unwrap()];
 
     let community_cards = [
@@ -258,7 +295,6 @@ fn trips_runner_runner() {
 #[test]
 fn trips_on_turn_high_card() {
     let combo: Vec<&Card> = vec![];
-    // [9♣ 3♠], [8♠ 2♦] | T♠ 9❤ J❤ | 9♦ | K❤	[9♣ 3♠] wins with FullHouse
     let holdings = [Card::from("9c").unwrap(), Card::from("3s").unwrap()];
 
     let community_cards = [
@@ -276,7 +312,6 @@ fn trips_on_turn_high_card() {
 #[test]
 fn trips_on_turn_low_card() {
     let combo: Vec<&Card> = vec![];
-    // [9♣ 3♠], [8♠ 2♦] | T♠ 3❤ J❤ | 3♦ | K❤	[9♣ 3♠] wins with FullHouse
     let holdings = [Card::from("9c").unwrap(), Card::from("3s").unwrap()];
 
     let community_cards = [
@@ -294,7 +329,6 @@ fn trips_on_turn_low_card() {
 #[test]
 fn trips_on_river_a6() {
     let combo: Vec<&Card> = vec![];
-    // [5♠ 3♠], [A❤ 6❤ ] | 4♠ A♣ 3❤ | T♣ | A♦	[A❤ 6❤] wins with FullHouse
     let holdings = [Card::from("Ah").unwrap(), Card::from("6h").unwrap()];
 
     let community_cards = [
@@ -312,7 +346,6 @@ fn trips_on_river_a6() {
 #[test]
 fn trips_on_river_kj() {
     let combo: Vec<&Card> = vec![];
-    // [K♠ J♦], [7♦ 6♠] | K♦ 8❤ 5♠ | 4♠ | K♣	[K♠ J♦] wins with FullHouse
     let holdings = [Card::from("Ks").unwrap(), Card::from("Jd").unwrap()];
 
     let community_cards = [
@@ -331,7 +364,6 @@ fn trips_on_river_kj() {
 #[test]
 fn trips_flopped() {
     let combo: Vec<&Card> = vec![];
-    // [6♣ 6♠], [9♦ 7❤ ] | A❤ 6❤ 9❤ | 4❤ | K♠	[6♣ 6♠] wins with Pair
     let holdings = [Card::from("6c").unwrap(), Card::from("6s").unwrap()];
 
     let community_cards = [
@@ -492,7 +524,6 @@ fn full_house_flopped() {
 #[test]
 fn full_house_paired_board_on_river() {
     let combo: Vec<&Card> = vec![];
-    // [T♦ 6♦], [A♦ 7♦] | Q♦ 8♣ A♠ | 7❤ | 7♠	[A♦ 7♦] wins with TwoPair
     let community_cards = [
         Card::from("Qd").unwrap(),
         Card::from("8c").unwrap(),
@@ -510,7 +541,6 @@ fn full_house_paired_board_on_river() {
 #[test]
 fn full_house_paired_board_and_river() {
     let combo: Vec<&Card> = vec![];
-    // [J❤ 5♠], [9♣ 6❤] | 2❤ 5♦ 2♠ | Q❤ | 5❤ 	[J❤ 5♠] wins with TwoPair
     let community_cards = [
         Card::from("2h").unwrap(),
         Card::from("5d").unwrap(),
@@ -528,7 +558,6 @@ fn full_house_paired_board_and_river() {
 #[test]
 fn full_house_pockets_and_board_paired_on_river() {
     let combo: Vec<&Card> = vec![];
-    // [K♣ 2♣], [8❤ 8♠] | 4❤ A♠ Q♣ | 8♦ | Q♦	[8❤ 8♠] wins with TwoPair
     let community_cards = [
         Card::from("4h").unwrap(),
         Card::from("As").unwrap(),

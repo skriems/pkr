@@ -16,6 +16,19 @@ pub enum HandRank {
     RoyalFlush,
 }
 
+// impl PartialOrd for HandRank {
+//     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+//         match (self, other) {
+//             (HandRank::TwoPair(ref rank, ref _x), HandRank::TwoPair(ref other_rank, ref _y))
+//             | (
+//                 HandRank::FullHouse(ref rank, ref _x),
+//                 HandRank::FullHouse(ref other_rank, ref _y),
+//             ) => rank.partial_cmp(&other_rank),
+//             (_, _) => self.partial_cmp(&other),
+//         }
+//     }
+// }
+
 impl fmt::Display for HandRank {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
